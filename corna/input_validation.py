@@ -77,7 +77,7 @@ def validate_maven_file(input_maven_df):
         logs = {"errors": [e.message], "warnings": {"action": [],
                                                     "message": []
                                                     }
-                       }
+                }
         return pd.DataFrame(), logs
 
 

@@ -200,11 +200,13 @@ RAW_LCMS = 'Input_Data'
 META_LCMS = 'Meta_Data'
 
 FILE_PATH = 'file_path'
+FORMULA = 'Formula'
+FORMULA_COL_PATTERN = 'C+'
 
 SAMPLE_METADATA_REQUIRED_COLS = ['Original Filename', 'Sample Name', 'Background Sample',\
                                  'Phenotype', 'Sample_no', 'Time Course']
 
-METADATA_MQ_REQUIRED_COLS = ['Component Name', 'Unlabeled Fragment', 'Isotopic Tracer', 'Name', 'Formula',
+METADATA_MQ_REQUIRED_COLS = ['Component Name', 'Unlabeled Fragment', 'Isotopic Tracer', 'Formula',
                              'Parent Formula']
 
 RAW_FILE_REQUIRED_COLS = ['Original Filename', 'Area', 'Mass Info', 'Sample Name', 'Component Name']
@@ -240,9 +242,11 @@ METADATA_MQ_DICT = {
         'value_in_constant': {'column_name': ISOTRACER_COL,
                               'constant_list' : ISOTOPE_VALUES,
                               'state' : 'invalid'},
+        'pattern_match': {'column_name': FORMULA,
+                          'regex_pattern': FORMULA_COL_PATTERN,
+                          'state': 'not in correct format'},            
         'missing_data': {'state': 'missing'},
         }
-
 }
 
 SAMPLE_METADATA_DICT = {

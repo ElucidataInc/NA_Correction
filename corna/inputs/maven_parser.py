@@ -517,7 +517,7 @@ def read_maven_file(maven_file_path, metadata_path):
             corrected_maven_df, validation_logs = get_corrected_maven_df(input_maven_df)
             logs = input_validation.validate_maven_file(input_maven_df)[1]
             if logs[con.VALIDATION_ERROR] or validation_logs[con.VALIDATION_ERROR]:
-                validation_logs[con.VALIDATION_ERROR] = validation_logs[con.VALIDATION_ERROR] + logs[con.VALIDATION_ERROR]
+                validation_logs[con.VALIDATION_ERROR] += logs[con.VALIDATION_ERROR]
                 return get_df_frm_path(), validation_logs, None, None, None
             summary[con.RAW_LCMS] = return_summary_dict(con.RAW_LCMS, corrected_maven_df)
         except Exception as e:
