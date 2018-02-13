@@ -21,6 +21,7 @@ from ..isotopomer import bulk_insert_data_to_fragment
 Multiquantkey = namedtuple('MultiquantKey', 'name formula parent parent_formula')
 validated_raw_tuple = namedtuple('validated_raw_mq', 'df logs')
 validated_metadata_tuple = namedtuple('validated_metadata_mq', 'df logs')
+validated_sample_metadata_tuple = namedtuple('validated_sample_metadata', 'df logs')
 metadata_mq_tuple = namedtuple('metadata_mq', 'df logs')
 
 def get_validated_df_and_logs(input_files, isMetadata_present, edited_data):
@@ -59,11 +60,23 @@ def get_validated_df_and_logs(input_files, isMetadata_present, edited_data):
                                                             isMetadata_present,
                                                             edited_data)
         if not sample_metadata_mq is None:
-            raw_mq_df = get_filtered_raw_mq_df(raw_mq, sample_metadata_mq)
-            summary[constants.SMP_MSMS] = sm.return_summary_dict(constants.SMP_MSMS, sample_metadata_mq)
+            sample_data_validation_result = validation.data_validation_sample_metadata_df(sample_metadata_mq)
+            validated_sample_metadata = validated_sample_metadata_tuple(
+                df = sample_data_validation_result[0],
+                logs = sample_data_validation_result[1]
+            )
+
+            if not sample_data_validation_result[1]['errors']:
+                raw_mq_df = get_filtered_raw_mq_df(raw_mq, sample_metadata_mq)
+                summary[constants.SMP_MSMS] = sm.return_summary_dict(constants.SMP_MSMS, sample_metadata_mq)
+            else:
+                raw_mq_df = raw_mq
 
         else:
             raw_mq_df = raw_mq
+            validated_sample_metadata = validated_sample_metadata_tuple(
+                    df = sample_metadata_mq,
+                    logs = {'errors': [], 'warnings': {'action': [], 'message': []}})
         validated_raw_mq = validated_raw_tuple(
             df = validation.data_validation_raw_df(raw_mq_df)[0],
             logs = validation.data_validation_raw_df(raw_mq_df)[1]
@@ -81,7 +94,20 @@ def get_validated_df_and_logs(input_files, isMetadata_present, edited_data):
                 logs = {'errors': [], 'warnings': {'action': [], 'message': []}}
             )
             summary[constants.META_MSMS] = sm.return_summary_dict(constants.META_MSMS, metadata_mq)
-        return validated_raw_mq, validated_metadata_mq, sample_metadata_mq, summary, missing_comp_logs
+        
+        if not validated_raw_mq.logs['errors'] and not validated_sample_metadata.logs['errors']:
+            missing_samples_logs = validation.find_missing_samples(
+                                        validated_raw_mq.df,
+                                        validated_sample_metadata.df,
+                                        'sample_metadata')
+            if missing_samples_logs['error']:
+                validated_raw_mq.logs['errors'] = \
+                            validated_raw_mq.logs['errors'] + missing_samples_logs['msg']
+            else:
+                validated_raw_mq.logs['warnings']['message'] = \
+                    validated_raw_mq.logs['warnings']['message'] + missing_samples_logs['msg']
+
+        return validated_raw_mq, validated_metadata_mq, validated_sample_metadata, summary, missing_comp_logs
     except Exception as e:
         raise Exception(e)
 

@@ -235,6 +235,9 @@ METADATA_MQ_DICT = {
     'warnings': {
         'missing': 'FILL_NA',
         'duplicate': 'DROP',
+        'pattern_match': {'column_name': FORMULA,
+                          'regex_pattern': FORMULA_COL_PATTERN,
+                          'state': 'not in correct format'},
     },
     'functions': {
         'chemical_formula': {'column_list': FORMULA_COL_METADATAFILE,
@@ -242,23 +245,18 @@ METADATA_MQ_DICT = {
         'value_in_constant': {'column_name': ISOTRACER_COL,
                               'constant_list' : ISOTOPE_VALUES,
                               'state' : 'invalid'},
-        'pattern_match': {'column_name': FORMULA,
-                          'regex_pattern': FORMULA_COL_PATTERN,
-                          'state': 'not in correct format'},            
         'missing_data': {'state': 'missing'},
         }
 }
 
 SAMPLE_METADATA_DICT = {
-    'file_path': '',
+    'file_path': None,
     'required_columns': SAMPLE_METADATA_REQUIRED_COLS,
     'warnings': {
         'missing': 'FILL_NA',
         'duplicate': 'DROP',
     },
     'functions': {
-        'chemical_formula': {'column_list': ORIGINAL_FILENAME,
-                            'state': 'invalid formula'},
         'missing_data': {'state': 'missing'},
         }
 }

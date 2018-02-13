@@ -109,7 +109,7 @@ def data_validation_metadata_df(path):
         return pd.DataFrame(), logs
 
 
-def data_validation_sample_metadata_df(path):
+def data_validation_sample_metadata_df(input_df):
     """do datavalidtaion for metadata_mq_df and returns instance of
     DATA VALIDATION class.
 
@@ -126,7 +126,7 @@ def data_validation_sample_metadata_df(path):
     # :TODO: update doc when this function will be updated
     try:
         sample_metadata_dict = dict(const.SAMPLE_METADATA_DICT)
-        sample_metadata_dict[const.FILE_PATH] = path
+        sample_metadata_dict["df"] = input_df
         cdv = CDV(sample_metadata_dict)
         cdv.validate()
         return cdv.dv.corrected_df, cdv.dv.logs
@@ -138,13 +138,25 @@ def data_validation_sample_metadata_df(path):
         return pd.DataFrame(), logs
 
 
-def find_missing_samples(raw_df, meta_sample_df):
+def find_missing_samples(raw_df, meta_df, file_name):
     """
+    Function to check the missing samples in the metadata
+    which are present in the metadata file.
     """
+    missing_sample_dict = {}
+    msgs_list = []
+    meta_msg_list = []
     raw_samples_set = set(raw_df[const.SAMPLE_NAME])
-    meta_sample_set = set(meta_sample_df[const.SAMPLE_NAME])
-    raw_missing_samples = raw_samples_set - meta_sample_set
-    meta_missing_samples = meta_sample_set - raw_samples_set
-    missing_sample_logs = {'raw_missing_samples': raw_samples_set, 'meta_missing_samples': meta_sample_set}
-    return missing_sample_logs
+    meta_sample_set = set(meta_df[const.SAMPLE_NAME])
+    raw_missing_samples = list(raw_samples_set - meta_sample_set)
+    meta_missing_samples = list(meta_sample_set - raw_samples_set)
+    if len(raw_samples_set) == len(raw_missing_samples):
+        error_msg = "No matching samples in the Raw Intensity file and Metadata file"
+        return {'error': True, 'msg' : [error_msg]}
+    
+    for sample in raw_missing_samples:
+        index = raw_df[const.SAMPLE_NAME][raw_df[const.SAMPLE_NAME] == sample].index.tolist()[0]
+        msgs_list.append("Row Number <b>{}</b> : column <b>{}</b> is <b>not present in {}</b> file.".\
+            format(index, const.SAMPLE_NAME, file_name))
+    return {'error': False, 'msg': msgs_list}
 

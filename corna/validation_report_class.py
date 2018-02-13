@@ -225,7 +225,7 @@ class ValidationReport():
                 msg = []
                 for error in self.result[row][const.VALIDATION_ERROR]:
                     msg.append("column <b>{c[0]}</b> has <b>{c[1]}</b> value".format(c=error))
-                actual_row_number = row + 2
+                actual_row_number = row
                 final_msg = "Row Number <b>%i</b> : " % actual_row_number + " , ".join(msg)
                 self.warning_error_dict[const.VALIDATION_ERROR].append(final_msg)
 
