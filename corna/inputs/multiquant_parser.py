@@ -95,7 +95,8 @@ def get_validated_df_and_logs(input_files, isMetadata_present, edited_data):
             )
             summary[constants.META_MSMS] = sm.return_summary_dict(constants.META_MSMS, metadata_mq)
         
-        if not validated_raw_mq.logs['errors'] and not validated_sample_metadata.logs['errors']:
+        if not validated_raw_mq.logs['errors'] and not validated_sample_metadata.logs['errors']\
+            and validated_sample_metadata.df != None:
             missing_samples_logs = validation.find_missing_samples(
                                         validated_raw_mq.df,
                                         validated_sample_metadata.df,
@@ -157,7 +158,7 @@ def get_basic_validation_instance(input_files, is_metadata_mq_present, edited_da
     else:
         metadata_mq, missing_comp_logs = dat_alg.na_create_fragment_mapping(raw_mq, edited_data)
 
-    if input_files['mq_sample_metadata_path']:
+    if input_files.get('mq_sample_metadata_path'):
         mq_sample_metadata_path = input_files.get('mq_sample_metadata_path')
         sample_metadata_mq = validation.get_validation_df(mq_sample_metadata_path)
 

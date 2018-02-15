@@ -253,7 +253,7 @@ def get_validation_fn_lst():
     a df.
     """
     list = [report_missing_values, report_duplicate_values,
-            report_label_column_format, report_label_in_formula,
+            report_label_column_format,
             report_formula_column_format, report_intensity_values]
     return list
 
