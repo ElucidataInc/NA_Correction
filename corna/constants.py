@@ -35,13 +35,13 @@ FORMULA_COL = 'Formula'
 VALID_STATE = 'correct'
 MISSING_STATE = 'missing'
 DUPLICATE_STATE = 'duplicate'
-LABEL_STATE_INVALID = 'invalid label data'
+LABEL_STATE_INVALID = 'invalid label format'
 LABEL_STATE_NOT_CORRECT = 'a required format "C13-Label-1"'
 LABEL_STATE_NOT_FORMULA = 'no label in formula'
 LABEL_STATE_NUMBER_MORE_FORMULA = 'element_in_label_more_than_formula'
 ELEMENT_LIST = set(['C','N','H','S', 'O'])
 UNLABELLED_LABEL = 'C12 PARENT'
-FORMULA_STATE_INVALID = 'formula not correct'
+FORMULA_STATE_INVALID = 'incorrect formula'
 COLUMN_STATE = 'state'
 COLUMN_ROW = 'row_number'
 COLUMN_NAME = 'column_name'
@@ -50,7 +50,7 @@ NAME_COL = 'Name'
 NA_LCMS = 'na_lcms'
 NA_MSMS = 'na_msms'
 UNLABELLED_LABEL_DICT = {'C': 0,'N': 0}
-INTENSITY_STATE_NEGATIVE = 'negative'
+INTENSITY_STATE_NEGATIVE = 'negative intensity'
 INTENSITY_STATE_INVALID = 'invalid_intensity_value'
 VALIDATION_WARNING = 'warnings'
 VALIDATION_ERROR = 'errors'
@@ -220,7 +220,7 @@ RAW_MQ_DICT = {
     },
     'functions': {
         'numerical': {'column_list': AREA_COLUMN_RAWFILE,
-                      'negative state': 'negative',
+                      'negative state': 'negative intensity',
                       'invalid state': 'invalid num'},
         'pattern_match': {'column_name': MASSINFO_COL,
                           'regex_pattern': PATTERN_MASSINFO_COL,
