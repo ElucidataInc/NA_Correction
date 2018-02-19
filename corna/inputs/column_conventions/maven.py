@@ -3,3 +3,25 @@ NAME = 'Name'
 FORMULA = 'Formula'
 LABEL = 'Label'
 SAMPLE = 'Sample'
+
+REQUIRED_COLUMNS = [NAME, LABEL, FORMULA]
+NAME_COL_PATTERN = '^([a-zA-Z0-9_\s\-]*)$'
+LABEL_COL_PATTERN =  '([A-Z]\d\d)|([A-Z]\d\d)((\sPARENT)|(\-label-\d|(\-\d)))'
+FORMULA_COL_PATTERN = 'C+'
+
+MAVEN_OUTPUT_REQUIRED_COLS = ['compound', 'label', 'note', 'IsotopeLabel', 'metaGroupId', 'groupId',
+                     'maxQuality', 'compoundId', 'expectedRtDiff',
+                     'ppmDiff', 'medRt', 'parent', 'goodPeakCount',
+                     'medMz', 'formula']
+
+MAVEN_DICT = {
+    'file_path': None,
+    'required_columns': REQUIRED_COLUMNS,
+    'warnings': {
+        'missing': 'FILL_NA',
+        'duplicate': 'DROP',
+    },
+    'functions': {
+        'missing_data': {'state': 'missing'},
+    }
+}

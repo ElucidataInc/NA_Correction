@@ -35,21 +35,22 @@ FORMULA_COL = 'Formula'
 VALID_STATE = 'correct'
 MISSING_STATE = 'missing'
 DUPLICATE_STATE = 'duplicate'
-LABEL_STATE_INVALID = 'invalid label data'
-LABEL_STATE_NOT_CORRECT = 'label not correct'
-LABEL_STATE_NOT_FORMULA = 'label_not_in_formula'
+LABEL_STATE_INVALID = 'invalid label format'
+LABEL_STATE_NOT_CORRECT = 'a required format "C13-Label-1"'
+LABEL_STATE_NOT_FORMULA = 'no label in formula'
 LABEL_STATE_NUMBER_MORE_FORMULA = 'element_in_label_more_than_formula'
 ELEMENT_LIST = set(['C','N','H','S', 'O'])
 UNLABELLED_LABEL = 'C12 PARENT'
-FORMULA_STATE_INVALID = 'formula not correct'
+FORMULA_STATE_INVALID = 'incorrect formula'
 COLUMN_STATE = 'state'
 COLUMN_ROW = 'row_number'
 COLUMN_NAME = 'column_name'
 COMPONENT_NAME = 'Component Name'
 NAME_COL = 'Name'
 NA_LCMS = 'na_lcms'
+NA_MSMS = 'na_msms'
 UNLABELLED_LABEL_DICT = {'C': 0,'N': 0}
-INTENSITY_STATE_NEGATIVE = 'negative'
+INTENSITY_STATE_NEGATIVE = 'negative intensity'
 INTENSITY_STATE_INVALID = 'invalid_intensity_value'
 VALIDATION_WARNING = 'warnings'
 VALIDATION_ERROR = 'errors'
@@ -80,6 +81,7 @@ COLUMN_ISOTOPE_TRACER = 'Isotopic Tracer'
 ISOTOPE_VALUES = ['C13', 'N15', 'H2', 'S34']
 BORDERLINE_LIMIT = 0.5
 PATTERN_MASSINFO_COL = '\d+.*\d+\s*\/\s*\d+.*\d+'
+SAMPLE_NAME_COL_PATTERN = '^([a-zA-Z0-9_\s\-]*)$'
 ## Dict storing mass diff between isotopes
 #formula used = {(O17-O16) - (C13-C12)}
 MASS_DIFF_DICT = {
@@ -198,31 +200,44 @@ RAW_LCMS = 'Input_Data'
 META_LCMS = 'Meta_Data'
 
 FILE_PATH = 'file_path'
+FORMULA = 'Formula'
+FORMULA_COL_PATTERN = 'C+'
+
+SAMPLE_METADATA_REQUIRED_COLS = ['Original Filename', 'Sample Name', 'Background Sample',\
+                                 'Phenotype', 'Sample_no', 'Time Course']
+
+METADATA_MQ_REQUIRED_COLS = ['Component Name', 'Unlabeled Fragment', 'Isotopic Tracer', 'Formula',
+                             'Parent Formula']
+
+RAW_FILE_REQUIRED_COLS = ['Original Filename', 'Area', 'Mass Info', 'Sample Name', 'Component Name']
+
 RAW_MQ_DICT = {
-    'file_path': '',
-    'required_columns': [],
+    'file_path': None,
+    'required_columns': RAW_FILE_REQUIRED_COLS,
     'warnings': {
         'missing': 'FILL_NA',
         'duplicate': 'DROP',
     },
     'functions': {
         'numerical': {'column_list': AREA_COLUMN_RAWFILE,
-                      'negative state': 'negative',
+                      'negative state': 'negative intensity',
                       'invalid state': 'invalid num'},
         'pattern_match': {'column_name': MASSINFO_COL,
                           'regex_pattern': PATTERN_MASSINFO_COL,
                           'state':'not in correct format'},
         'missing_data': {'state': 'missing'},
     }
-
 }
 
 METADATA_MQ_DICT = {
     'file_path': '',
-    'required_columns': [],
+    'required_columns': METADATA_MQ_REQUIRED_COLS,
     'warnings': {
         'missing': 'FILL_NA',
         'duplicate': 'DROP',
+        'pattern_match': {'column_name': FORMULA,
+                          'regex_pattern': FORMULA_COL_PATTERN,
+                          'state': 'not in correct format'},
     },
     'functions': {
         'chemical_formula': {'column_list': FORMULA_COL_METADATAFILE,
@@ -232,5 +247,16 @@ METADATA_MQ_DICT = {
                               'state' : 'invalid'},
         'missing_data': {'state': 'missing'},
         }
+}
 
+SAMPLE_METADATA_DICT = {
+    'file_path': None,
+    'required_columns': SAMPLE_METADATA_REQUIRED_COLS,
+    'warnings': {
+        'missing': 'FILL_NA',
+        'duplicate': 'DROP',
+    },
+    'functions': {
+        'missing_data': {'state': 'missing'},
+        }
 }
