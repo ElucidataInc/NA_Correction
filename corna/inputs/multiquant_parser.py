@@ -96,7 +96,7 @@ def get_validated_df_and_logs(input_files, isMetadata_present, edited_data):
             summary[constants.META_MSMS] = sm.return_summary_dict(constants.META_MSMS, metadata_mq)
         
         if not validated_raw_mq.logs['errors'] and not validated_sample_metadata.logs['errors']\
-            and validated_sample_metadata.df != None:
+            and not validated_sample_metadata.df is None:
             missing_samples_logs = validation.find_missing_samples(
                                         validated_raw_mq.df,
                                         validated_sample_metadata.df,
