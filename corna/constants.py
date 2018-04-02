@@ -203,17 +203,19 @@ FILE_PATH = 'file_path'
 FORMULA = 'Formula'
 FORMULA_COL_PATTERN = 'C+'
 
-SAMPLE_METADATA_REQUIRED_COLS = ['Original Filename', 'Sample Name', 'Background Sample',\
-                                 'Phenotype', 'Sample_no', 'Time Course']
+SAMPLE_METADATA_REQUIRED_COLS = ['Original Filename', 'Sample Name', 'Background Sample']
 
 METADATA_MQ_REQUIRED_COLS = ['Component Name', 'Unlabeled Fragment', 'Isotopic Tracer', 'Formula',
                              'Parent Formula']
 
-RAW_FILE_REQUIRED_COLS = ['Original Filename', 'Area', 'Mass Info', 'Sample Name', 'Component Name']
+RAW_FILE_REQUIRED_COLS_WITH_SAMPLE_METADATA = ['Original Filename', 'Area',
+                             'Mass Info', 'Sample Name', 'Component Name']
+RAW_FILE_REQUIRED_COLS_WITHOUT_SAMPLE_METADATA = ['Original Filename', 
+                             'Area', 'Mass Info', 'Component Name']
 
 RAW_MQ_DICT = {
     'file_path': None,
-    'required_columns': RAW_FILE_REQUIRED_COLS,
+    'required_columns': [],
     'warnings': {
         'missing': 'FILL_NA',
         'duplicate': 'DROP',
