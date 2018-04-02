@@ -52,7 +52,7 @@ def basic_validation_result(basic_validator):
         raise Exception(e)
 
 
-def data_validation_raw_df(input_df):
+def data_validation_raw_df(input_df, is_sample_metadata):
     """do datavalidtaion for raw_file_df and returns report_df
 
     It takes df of raw_mq file, creates an instance of DataValidation
@@ -68,6 +68,10 @@ def data_validation_raw_df(input_df):
     # :TODO: update doc when this function will be updated
     try:
         raw_mq_dict = dict(const.RAW_MQ_DICT)
+        if is_sample_metadata:
+            raw_mq_dict['required_columns'] = const.RAW_FILE_REQUIRED_COLS_WITH_SAMPLE_METADATA
+        else:
+            raw_mq_dict['required_columns'] = const.RAW_FILE_REQUIRED_COLS_WITHOUT_SAMPLE_METADATA
         raw_mq_dict["df"] = input_df
         cdv = CDV(raw_mq_dict)
         cdv.validate()
