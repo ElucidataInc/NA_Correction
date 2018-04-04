@@ -131,7 +131,11 @@ def convert_std_label_key_to_maven_label(df):
     def process_label(label):
         label_dict = create_dict_from_isotope_label_list(label.split('_'))
         if all(num_isotopes == 0 for num_isotopes in label_dict.values()):
-            return 'C12 PARENT'
+            if 'H2' in label_dict:
+                return 'H2 PARENT'
+            else: 
+                if 'C13' in label_dict:
+                    return 'C12 PARENT'
         else:
             isotrac_string = ''
             num_string = ''
@@ -150,9 +154,8 @@ def convert_labels_to_std(df, iso_tracers):
     This function converts the labels C13N15-label-1-1 in the form
     C13_1_N15_1
     """
-
     def process_label(label):
-        if label == 'C12 PARENT':
+        if 'PARENT' in label:
             return '_'.join('{}_0'.format(t) for t in iso_tracers)
         else:
             formula, enums = label.split('-label-')
