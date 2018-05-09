@@ -548,10 +548,17 @@ def read_maven_file(maven_file_path, metadata_path):
     if not check_error_present(validation_logs):
         try:
             isotracer_dict = get_isotracer_dict(corrected_maven_df)
-            merged_df = get_merge_df(corrected_maven_df, metadata_df)
+        except:
+            logs = {con.VALIDATION_ERROR: ["Isotope Label mismatch or missing"],
+                    con.VALIDATION_WARNING: {"action":[],
+                    con.VALIDATION_MESSAGE:[]
+                    }}
+            return get_df_frm_path(), logs, None, None, None
+        merged_df = get_merge_df(corrected_maven_df, metadata_df)
+        try:
             unique_element_list = get_element_list(corrected_maven_df)
         except:
-            logs = {con.VALIDATION_ERROR: ["Some fields in the file are missing"],
+            logs = {con.VALIDATION_ERROR: ["Formula of a compound is missing"],
                     con.VALIDATION_WARNING: {"action":[],
                     con.VALIDATION_MESSAGE:[]
                     }}
