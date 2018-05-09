@@ -554,7 +554,7 @@ def read_maven_file(maven_file_path, metadata_path):
             logs = {con.VALIDATION_ERROR: ["Some fields in the file are missing"],
                     con.VALIDATION_WARNING: {"action":[],
                     con.VALIDATION_MESSAGE:[]
-                    }
+                    }}
             return get_df_frm_path(), logs, None, None, None
         if duplicate_column_list:
             duplicate_message = "Found column " + ','.join(duplicate_column_list) + " are duplicated"
