@@ -137,7 +137,7 @@ def convert_std_label_key_to_maven_label(df):
         if all(num_isotopes == 0 for num_isotopes in label_dict.values()):
             if 'H2' in label_dict:
                 return 'H2 PARENT'
-            else: 
+            else:
                 if 'C13' in label_dict:
                     return 'C12 PARENT'
         else:
@@ -546,9 +546,23 @@ def read_maven_file(maven_file_path, metadata_path):
         metadata_df = get_df_frm_path()
         maven_df = corrected_maven_df
     if not check_error_present(validation_logs):
-        isotracer_dict = get_isotracer_dict(corrected_maven_df)
+        try:
+            isotracer_dict = get_isotracer_dict(corrected_maven_df)
+        except:
+            logs = {con.VALIDATION_ERROR: ["Isotope Label mismatch or missing"],
+                    con.VALIDATION_WARNING: {"action":[],
+                    con.VALIDATION_MESSAGE:[]
+                    }}
+            return get_df_frm_path(), logs, None, None, None
         merged_df = get_merge_df(corrected_maven_df, metadata_df)
-        unique_element_list = get_element_list(corrected_maven_df)
+        try:
+            unique_element_list = get_element_list(corrected_maven_df)
+        except:
+            logs = {con.VALIDATION_ERROR: ["Formula of a compound is missing"],
+                    con.VALIDATION_WARNING: {"action":[],
+                    con.VALIDATION_MESSAGE:[]
+                    }}
+            return get_df_frm_path(), logs, None, None, None
         if duplicate_column_list:
             duplicate_message = "Found column " + ','.join(duplicate_column_list) + " are duplicated"
             action_mesaage = "Column are renamed and appended"
