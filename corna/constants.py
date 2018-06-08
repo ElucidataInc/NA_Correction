@@ -85,7 +85,7 @@ PATTERN_MASSINFO_COL = '\d+.*\d+\s*\/\s*\d+.*\d+'
 SAMPLE_NAME_COL_PATTERN = '^([a-zA-Z0-9_\s\-]*)$'
 ## Dict storing mass diff between isotopes
 #formula used = {(O17-O16) - (C13-C12)}
-"MASS_DIFF_DICT": {
+MASS_DIFF_DICT= {
   "O17": {
       "C": 0.0008622426,
       "N": 0.007182187,
