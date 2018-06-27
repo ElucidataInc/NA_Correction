@@ -1,3 +1,8 @@
+"""
+Module to calculate fractional enrichment if dataframe is in wide format.
+
+"""
+
 import pandas as pd
 
 def replace_negatives(df):
