@@ -5,9 +5,9 @@ from operator import itemgetter
 
 import numpy as np
 import pandas as pd
+import re
 
 import constants as const
-from formula import Formula
 from formulaschema import FormulaSchema
 from inputs.column_conventions import multiquant as c
 
@@ -28,6 +28,19 @@ VAL_COL = const.VAL_COL
 #     global ISOTOPE_NA_MASS
 #     ISOTOPE_NA_MASS = isotope_dict
 #
+def parse_formula(formula):
+    """returns dict of element:number of atoms"""
+    D={}
+    if formula is np.nan:
+        return D
+    m=re.findall('([A-Z][a-z]?)(\d+)?',str(formula))
+    for x in m:
+        if x[1]=='':
+            D[x[0]]=1
+        else:
+            D[x[0]]=int(x[1])
+    return D
+    
 def get_global_isotope_dict():
      return const.ISOTOPE_NA_MASS
 
@@ -55,6 +68,17 @@ def get_isotope_mass(iso):
     except KeyError:
         raise KeyError('Check available isotope list', iso)
 
+def get_mol_weight(formula):
+    """calculate molecular weight
+    Returns:
+        mw (float): molecular weight
+    """
+    parsed_formula = parse_formula(formula)
+    mw = 0
+    for sym, qty in parsed_formula.iteritems():
+        mw = mw + get_atomic_weight(sym) * qty
+    return mw
+
 
 def get_isotope_na(iso, isotope_dict=const.ISOTOPE_NA_MASS):
     try:
@@ -70,14 +94,6 @@ def get_isotope_natural(iso):
         raise KeyError('Check available isotope list', iso)
 
 
-def label_dict_to_key(label_dict):
-    key = ''
-
-    for ele, num in label_dict.iteritems():
-        key = key + '_' + ele + '_' + str(num)
-    key = key.strip('_')
-
-    return key
 
 
 def read_file(path, head=0):
@@ -203,12 +219,6 @@ def parse_polyatom(polyatom_string):
     polyatomdata = polyatomschema.parseString(polyatom_string)
     polyatom = polyatomdata[0]
     return (polyatom.element, polyatom.number_atoms)
-
-
-def get_formula(formula):
-    """Parsing formula to store as an element -> number of atoms dictionary"""
-    parsed_formula = Formula(formula).parse_formula_to_elem_numatoms()
-    return parsed_formula
 
 
 def merge_multiple_dfs(df_list):
