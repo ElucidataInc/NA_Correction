@@ -30,6 +30,7 @@ def fractional_enrichment(df):
     Returns:
         final_df: dataframe which consists of the calculated values.
     """
+    df= df.filter(['Sample', 'Name', 'Label','Formula', 'NA Corrected'])
     df= replace_negatives(df)
     final_df= pd.DataFrame()
 
@@ -41,6 +42,10 @@ def fractional_enrichment(df):
             metab_df['Fractional_enrichment']= metab_df['NA Corrected with zero']/pooltotal
             final_df= final_df.append(metab_df)
     final_df= final_df.fillna(0)
+    if 'NA Corrected' in final_df.columns:
+        final_df.drop(['NA Corrected'], axis=1, inplace=True)
+    if 'NA Corrected with zero' in final_df.columns:
+        final_df.drop(['NA Corrected with zero'], axis=1, inplace=True)
     return final_df
 
 

@@ -165,20 +165,6 @@ def filter_df(df, colname_val_dict):
         return filtered_df
 
 
-def create_dict_from_isotope_label_list(isonumlist):
-    label_dict = collections.OrderedDict()
-
-    for i in xrange(0, len(isonumlist), 2):
-        try:
-            get_isotope_element(isonumlist[i])
-            label_dict.update({isonumlist[i]: int(isonumlist[i + 1])})
-        except KeyError:
-            raise KeyError('The key must be an isotope')
-        except ValueError:
-            raise ValueError('The number of labels should be integer')
-    return label_dict
-
-
 def get_unique_values(df, column_name):
     """
     This function gives the unique values from a column in the form of a list
@@ -189,22 +175,6 @@ def get_unique_values(df, column_name):
         raise KeyError('Column' + column_name + 'not found in dataframe')
 
     return unique_val_list
-
-
-def get_key_from_single_value_dict(inputdict):
-    if len(inputdict) == 1:
-        key, value = inputdict.items()[0]
-    else:
-        raise OverflowError('Dictionary not single key, value pair')
-    return key
-
-
-def get_value_from_single_value_dict(inputdict):
-    if len(inputdict) == 1:
-        key, value = inputdict.items()[0]
-    else:
-        raise OverflowError('Dictionary not single key, value pair')
-    return value
 
 
 def check_if_all_elems_same_type(inputlist, classname):

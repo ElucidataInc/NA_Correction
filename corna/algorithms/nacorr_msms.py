@@ -89,7 +89,7 @@ def na_correction_mimosa(msms_df):
     final_df['B']= na * ((final_df['p']-final_df['d']) - (final_df['m']-final_df['n']-1))
     final_df['C']=  na * (final_df['d']-final_df['n']+1)
 
-    final_df.drop(['Parent_mass', 'Daughter_mass','Label', 'p','d', 'm', 'n'], axis=1, inplace=True)
+    final_df.drop(['Parent_mass', 'Daughter_mass', 'p','d', 'm', 'n'], axis=1, inplace=True)
 
     for samp in final_df.Sample.unique():
         """
