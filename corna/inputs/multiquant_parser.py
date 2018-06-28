@@ -12,122 +12,9 @@ from corna import constants
 from corna.helpers import check_column_headers, read_file, get_unique_values
 from corna.constants import INTENSITY_COL
 
-Multiquantkey = namedtuple('MultiquantKey', 'name formula parent parent_formula')
 validated_raw_tuple = namedtuple('validated_raw_mq', 'df logs')
 validated_metadata_tuple = namedtuple('validated_metadata_mq', 'df logs')
 metadata_mq_tuple = namedtuple('metadata_mq', 'df logs')
-
-def get_validated_df_and_logs(input_files, isMetadata_present, edited_data):
-    """takes input files, validate it and sends back merge df
-
-    This function takes input_file path in form of dictionary in which
-    each key is name of the file and value as path of the file stored in
-    local folder. It then validates these file and returns instance of
-    all these files having validated df and its logs
-
-    Args:
-        input_files: {
-            "mq_file_path": absolute path_of_mq_file,
-            "mq_metadata_path": absolute path_of_metadata_file,
-            "mq_sample_metadata_path": absolute path_of_sample_metadata_file
-        }
-        isMetadata_present: boolean to check if metadata is present or not
-        edited_data: list of dictionaries containing metadata to be appended
-            to the auto-created dataframe.
-
-    Returns:
-        validated_raw_mq: instance of DATA VALIDATION class containing
-            logs & validated_df for raw_mq file.
-        validated_metadata_mq: instance of DATA VALIDATION class containing
-            logs & validated_df for metadata_mq file.
-        sample_metadata_mq: instance of BASIC VALIDATION class containing
-            validated_df for sample_metadata_mq file.
-        summary: dictionary containing all the information about data uploaded
-        missing_comp_logs: list of dictionaries containing missing Component
-            from metadata file
-    """
-    summary = {}
-
-    try:
-        raw_mq, metadata_mq, sample_metadata_mq, missing_comp_logs = get_basic_validation_instance(
-                                                            input_files,
-                                                            isMetadata_present,
-                                                            edited_data)
-        if not sample_metadata_mq is None:
-            raw_mq_df = get_filtered_raw_mq_df(raw_mq, sample_metadata_mq)
-            summary[constants.SMP_MSMS] = sm.return_summary_dict(constants.SMP_MSMS, sample_metadata_mq)
-
-        else:
-            raw_mq_df = raw_mq
-        validated_raw_mq = validated_raw_tuple(
-            df = validation.data_validation_raw_df(input_files['mq_file_path'])[0],
-            logs = validation.data_validation_raw_df(input_files['mq_file_path'])[1]
-            )
-        summary[constants.RAW_MSMS] = sm.return_summary_dict(constants.RAW_MSMS, raw_mq_df)
-        if isMetadata_present:
-            validated_metadata_mq = validated_metadata_tuple(
-                df = validation.data_validation_metadata_df(input_files['mq_metadata_path'])[0],
-                logs = validation.data_validation_metadata_df(input_files['mq_metadata_path'])[1]
-                )
-            summary[constants.META_MSMS] = sm.return_summary_dict(constants.META_MSMS, validated_metadata_mq.df)
-        else:
-            validated_metadata_mq = metadata_mq_tuple(
-                df = metadata_mq,
-                logs = {'errors': [], 'warnings': {'action': [], 'message': []}}
-            )
-            summary[constants.META_MSMS] = sm.return_summary_dict(constants.META_MSMS, metadata_mq)
-        return validated_raw_mq, validated_metadata_mq, sample_metadata_mq, summary, missing_comp_logs
-    except Exception as e:
-        raise Exception(e)
-
-
-def get_basic_validation_instance(input_files, is_metadata_mq_present, edited_data):
-    """takes input file, does basic validation and returns instance of BASIC
-    VALIDATION class of olmonk package
-
-    This method takes dictionary of file_path, using BASIC VALIDATION class
-    it validates the file and returns back the BASIC VALIDATION class instance
-    of the file.
-
-    Args:
-        input_files: {
-            "mq_file_path": path_of_mq_file,
-            "mq_metadata_path": path_of_metadata_file,
-            "mq_sample_metadata_path": path_of_sample_metadata_file
-        }
-        isMetadata_present: boolean to check if metadata is present or not
-        edited_data: list of dictionaries containing metadata to be appended
-            to the auto-created dataframe.
-
-
-    Returns:
-        raw_mq: instance of basic_validation class for raw_mq_file
-        metadata_mq: instance of basic_validation class for metadata_mq file
-        sample_metadata_mq: instance of basic_validation class for
-            sample_metadata_mq file
-        missing_comp_logs: list of dictionaries containing missing Component
-            from metadata file
-    """
-
-    # :TODO: add exception handling in this file
-    # :TODO: move constants to constants.py file
-    missing_comp_logs = {}
-    mq_file_path = input_files.get("mq_file_path")
-    raw_mq = validation.get_validation_df(mq_file_path)
-    if is_metadata_mq_present:
-        mq_metadata_path = input_files.get("mq_metadata_path")
-        metadata_mq = validation.get_validation_df(mq_metadata_path)
-        missing_comp_logs[constants.MISSING_COMPONENTS] = []
-
-    else:
-        metadata_mq, missing_comp_logs = dat_alg.na_create_fragment_mapping(raw_mq, edited_data)
-
-    if input_files['mq_sample_metadata_path']:
-        mq_sample_metadata_path = input_files.get('mq_sample_metadata_path')
-        sample_metadata_mq = validation.get_validation_df(mq_sample_metadata_path)
-    else:
-        sample_metadata_mq = None
-    return raw_mq, metadata_mq, sample_metadata_mq, missing_comp_logs
 
 
 def get_filtered_raw_mq_df(raw_mq, sample_metadata_mq):
@@ -262,24 +149,6 @@ def get_replicates(sample_metadata, sample_name, cohort_name, background_sample)
 def get_background_samples(sample_metadata, sample_name, background_sample):
     sample_background = sample_metadata.set_index(sample_name).to_dict()
     return sample_background[background_sample]
-
-
-def frag_key(df):
-    """
-    This function creates a fragment key column in merged data based on parent information.
-    """
-
-    def _extract_keys(x):
-        return Multiquantkey(x[multiquant.MQ_FRAGMENT],
-                             x[multiquant.FORMULA],
-                             x[multiquant.NAME],
-                             x[multiquant.PARENT_FORMULA])
-
-    try:
-        df[multiquant.FRAG] = df.apply(_extract_keys, axis=1)
-    except KeyError:
-        raise KeyError('Missing columns in data')
-    return df
 
 
 def merge_mq_metadata(mq_df, metdata, sample_metdata):
