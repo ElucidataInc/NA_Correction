@@ -5,6 +5,7 @@ import re
 
 import corna.constants as const
 import corna.helpers as hlp
+from corna.inputs.column_conventions import multiquant 
 
 def get_num_labeled_atoms(isotope, isotopic_mass, molecular_mass):
     """
@@ -25,13 +26,40 @@ def get_input_format(msms_df):
     This function creates columns of parent isotopic mass, daughter isotopic mass, isotracer from 
     the label column.
     """
-    s=msms_df['Label'].apply(lambda x: x.split('_'))
-    msms_df['isotopic_mass_parent'] = pd.to_numeric(s.apply(lambda x: x[1]), errors='coerce')
-    msms_df['isotopic_mass_daughter'] = pd.to_numeric(s.apply(lambda x: x[2]), errors='coerce')
-    msms_df['isotracer']= s.apply(lambda x: x[0])   
-    msms_df['NA Corrected']=0.0
-    msms_df.rename(columns={'Parent Formula': 'Parent_formula'}, inplace=True)
+    s=msms_df[multiquant.LABEL].apply(lambda x: x.split('_'))
+    msms_df[const.PARENT_MASS_ISO] = pd.to_numeric(s.apply(lambda x: x[1]), errors='coerce')
+    msms_df[const.DAUGHTER_MASS_ISO] = pd.to_numeric(s.apply(lambda x: x[2]), errors='coerce')
+    msms_df[multiquant.ISOTRACER]= s.apply(lambda x: x[0])   
+    msms_df[const.NA_CORRECTED_COL]=0.0
+    msms_df.rename(columns={multiquant.PARENT_FORMULA: multiquant.PARENT_FORM}, inplace=True)
     return msms_df
+
+def get_mass_and_number_of_atoms(df, formula_col, formula_info, iso_tracer,iso_elem, out_df):
+    if formula_info=='PARENT':
+        mol_mass_col= const.PARENT_MASS_MOL
+        iso_mass_col= const.PARENT_MASS_ISO
+        num_atom_col= const.PARENT_NUM_ATOMS
+        num_labeled_atoms_col= const.PARENT_NUM_LABELED_ATOMS
+    else:
+        mol_mass_col= const.DAUGHTER_MASS_MOL
+        iso_mass_col= const.DAUGHTER_MASS_ISO
+        num_atom_col= const.DAUGHTER_NUM_ATOMS
+        num_labeled_atoms_col= const.DAUGHTER_NUM_LABELED_ATOMS
+
+    for formula in df[formula_col].unique():
+        form_df= df[df[formula_col]==formula]
+        form_dict= hlp.parse_formula(formula)
+        try:
+            form_df.loc[:,num_atom_col] = form_dict[iso_elem]
+        except KeyError:
+            form_df.loc[:,num_atom_col] = 0
+        mass= hlp.get_mol_weight(formula)   
+        form_df.loc[:,mol_mass_col] = mass
+        form_df.loc[:,mol_mass_col]= form_df[mol_mass_col].round().astype(int)
+        out_df= out_df.append(form_df)
+
+    out_df[num_labeled_atoms_col]= get_num_labeled_atoms(iso_tracer, out_df[iso_mass_col], out_df[mol_mass_col])
+    return out_df
 
 
 def na_correction_mimosa(msms_df):
@@ -44,9 +72,11 @@ def na_correction_mimosa(msms_df):
         output_df: na corrected dataframe
         
     """
+    REQUIRED_COL= [multiquant.FORMULA, multiquant.LABEL, multiquant.NAME, multiquant.SAMPLE, multiquant.COHORT,
+                     multiquant.MQ_FRAGMENT, multiquant.INTENSITY, multiquant.PARENT_FORM,const.NA_CORRECTED_COL]
     msms_df= get_input_format(msms_df)
-    required_columns=['Formula','Label','Name', 'Sample', 'Cohort Name', 'Component Name', 'Intensity', 'NA Corrected', 'Parent_formula']
-    isotracer= msms_df.isotracer.unique()
+    isotracer= msms_df[multiquant.ISOTRACER].unique()
+    iso_elem= hlp.get_isotope_element(isotracer[0])
     input_df=pd.DataFrame()
     final_df=pd.DataFrame()
     output_df= pd.DataFrame()
@@ -54,42 +84,16 @@ def na_correction_mimosa(msms_df):
 
     na= hlp.get_isotope_na(isotracer[0])
 
-    #create column 'p' and 'Parent_mass' which contains no. of atoms of isotracer and molecular mass of 
-    #parent respectively. 
-    for formula in msms_df.Parent_formula.unique():
-        df= msms_df[msms_df['Parent_formula']==formula]
-        form_dict= hlp.parse_formula(formula)
-        try:
-            df.loc[:,'p'] = form_dict['C']
-        except KeyError:
-            df.loc[:,'p'] = 0
-        mass= hlp.get_mol_weight(formula)   
-        df.loc[:,'Parent_mass'] = mass
-        df.loc[:,'Parent_mass']= df['Parent_mass'].round().astype(int)
-        input_df= input_df.append(df)
+    input_df= get_mass_and_number_of_atoms(msms_df, multiquant.PARENT_FORM, 'PARENT', isotracer[0],iso_elem, input_df)
+    final_df= get_mass_and_number_of_atoms(input_df, multiquant.FORMULA, 'DAUGHTER', isotracer[0],iso_elem, final_df)
 
-    #create column 'd' and 'Daughter_mass' which contains no. of atoms of isotracer and molecular mass of 
-    #daughter respectively. 
-    for formula in input_df.Formula.unique():
-        df1=input_df[input_df['Formula']==formula]
-        form_dict= hlp.parse_formula(formula)
-        try:
-            df1.loc[:,'d'] = form_dict['C']
-        except KeyError:
-            df1.loc[:,'d'] = 0
-        mass= hlp.get_mol_weight(formula)
-        df1.loc[:,'Daughter_mass'] = mass
-        df1.loc[:,'Daughter_mass']= df1['Daughter_mass'].round().astype(int)
-        final_df= final_df.append(df1) 
+    final_df['A']=(1 + na * (final_df[const.PARENT_NUM_ATOMS]-final_df[const.PARENT_NUM_LABELED_ATOMS]))
+    final_df['B']= na * ((final_df[const.PARENT_NUM_ATOMS]-final_df[const.DAUGHTER_NUM_ATOMS]) -\
+                         (final_df[const.PARENT_NUM_LABELED_ATOMS]-final_df[const.DAUGHTER_NUM_LABELED_ATOMS]-1))
+    final_df['C']=  na * (final_df[const.DAUGHTER_NUM_ATOMS]-final_df[const.DAUGHTER_NUM_LABELED_ATOMS]+1)
 
-    final_df['m']= get_num_labeled_atoms('C13', final_df['isotopic_mass_parent'], final_df['Parent_mass'])
-    final_df['n']= get_num_labeled_atoms('C13', final_df['isotopic_mass_daughter'], final_df['Daughter_mass'])
-
-    final_df['A']=(1 + na * (final_df['p']-final_df['m']))
-    final_df['B']= na * ((final_df['p']-final_df['d']) - (final_df['m']-final_df['n']-1))
-    final_df['C']=  na * (final_df['d']-final_df['n']+1)
-
-    final_df.drop(['Parent_mass', 'Daughter_mass', 'p','d', 'm', 'n'], axis=1, inplace=True)
+    final_df.drop([const.PARENT_MASS_MOL, const.DAUGHTER_MASS_MOL, const.PARENT_NUM_ATOMS,
+                const.DAUGHTER_NUM_ATOMS, const.DAUGHTER_NUM_LABELED_ATOMS, const.PARENT_NUM_LABELED_ATOMS], axis=1, inplace=True)
 
     for samp in final_df.Sample.unique():
         """
@@ -99,22 +103,22 @@ def na_correction_mimosa(msms_df):
                 }
             }
         """
-        metab_df = final_df[final_df['Sample']==samp]
+        metab_df = final_df[final_df[multiquant.SAMPLE]==samp]
         frag_dict={}
         for index, row in metab_df.iterrows():
-            frag_dict[(row['isotopic_mass_parent'],row['isotopic_mass_daughter'])]=row['Intensity']
+            frag_dict[(row[const.PARENT_MASS_ISO],row[const.DAUGHTER_MASS_ISO])]=row[multiquant.INTENSITY]
     
         metab_dict[samp]= frag_dict
 
     for samp in final_df.Sample.unique():
-        metab_df = final_df[final_df['Sample']==samp]
+        metab_df = final_df[final_df[multiquant.SAMPLE]==samp]
         frag= metab_dict[samp]  
      
         for index, row in metab_df.iterrows():
-            m_n= row['isotopic_mass_daughter']
-            m_1_n= row['isotopic_mass_parent']-1
-            m_n_1= row['isotopic_mass_daughter']-1
-            intensity_m_n= row['Intensity']
+            m_n= row[const.DAUGHTER_MASS_ISO]
+            m_1_n= row[const.PARENT_MASS_ISO]-1
+            m_n_1= row[const.DAUGHTER_MASS_ISO]-1
+            intensity_m_n= row[const.INTENSITY_COL]
             try:
                 intensity_m_1_n= frag[m_1_n, m_n]
             except KeyError:
@@ -126,12 +130,14 @@ def na_correction_mimosa(msms_df):
         
             corrected= intensity_m_n * row['A']  - intensity_m_1_n * row['B'] -\
                                                 intensity_m_1_n_1 * row['C']
-            metab_df.set_value(index=index, col='NA Corrected',value= corrected)
+            metab_df.set_value(index=index, col=const.NA_CORRECTED_COL, value= corrected)
 
         output_df=output_df.append(metab_df) 
-    output_df= output_df.filter(required_columns)
-    
+    output_df= output_df.filter(REQUIRED_COL)
+
     return output_df
+
+
 
   
 

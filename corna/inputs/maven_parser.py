@@ -1,10 +1,9 @@
 import pandas as pd
 
-from corna.constants import INTENSITY_COL, ISOTOPE_NA_MASS, KEY_NA, VALIDATION_ERROR
 from corna.helpers import get_isotope_element, first_sub_second, parse_formula, chemformula_schema
 from corna.helpers import read_file, check_column_headers 
 from column_conventions import maven as maven_constants
-import corna.constants as con
+import corna.constants as cons
 
 def convert_labels_to_std(df, iso_tracers):
     """
@@ -34,16 +33,16 @@ def convert_labels_to_std(df, iso_tracers):
             # The order is important, so we don't map on inmap directly
             return '_'.join("{}_{}".format(i, inmap[i]) for i in iso_tracers)
     
-    df['Label'] = [process_label(l) for l in df['Label']]
+    df[cons.LABEL_COL] = [process_label(l) for l in df[cons.LABEL_COL]]
     
-    s=df['Label'].apply(lambda x: x.split('_'))
+    s=df[cons.LABEL_COL].apply(lambda x: x.split('_'))
     i=0
     for iso in iso_tracers:
         df[iso]= s.apply(lambda x: x[i+1])
         df[iso]= df[iso].astype(int)
         i=i+2
 
-    del df['Label']
+    del df[cons.LABEL_COL]
     return df
 
 def process_corrected_df_for_metab(df, metabolite, isotracers, required_column):
@@ -52,7 +51,7 @@ def process_corrected_df_for_metab(df, metabolite, isotracers, required_column):
     formula- C5H4N3
     formula_dict- {'C':5,'H':4, 'N':3}
     """
-    metabolite_df=df[df['Name']==metabolite]
+    metabolite_df=df[df[cons.NAME_COL]==metabolite]
     formula = metabolite_df.Formula.unique()
     formula_dict=parse_formula(formula[0])
     metabolite_df.set_index(isotracers, inplace=True) 
@@ -89,14 +88,14 @@ def create_label_column(df, isotracers):
     """
     df =df.rename_axis(None, axis=1).reset_index()
     isogroup=""
-    df['Label']=""
+    df[cons.LABEL_COL]=""
     for i in isotracers:
         isogroup += i
-        df['Label'] +='-'+ df[i].astype(str)
+        df[cons.LABEL_COL] +='-'+ df[i].astype(str)
         del df[i]
-    df['Label']= isogroup +'-label'+ df['Label']
+    df[cons.LABEL_COL]= isogroup +'-label'+ df[cons.LABEL_COL]
 
-    s=df['Label'].apply(lambda x: x.split('-'))
+    s=df[cons.LABEL_COL].apply(lambda x: x.split('-'))
 
     return df
 
@@ -106,8 +105,8 @@ def add_info_to_final_df(info_df, metab, formula, iso_tracers):
     Required columns include : Label, Name, Formula
     """
     info_df=create_label_column(info_df, iso_tracers)
-    info_df['Name']= metab
-    info_df['Formula'] = formula
+    info_df[cons.NAME_COL]= metab
+    info_df[cons.FORMULA_COL] = formula
     return info_df
 
 def save_original_df(df, iso_tracers):
@@ -115,8 +114,8 @@ def save_original_df(df, iso_tracers):
     This function modifies Label column from C13-Label-1 to C13N15-Label-1-0.
     And then returns back the original dataframe.
     """
-    df= df.filter(['Name', 'Formula', 'Label', 'Sample', 'Intensity'])
-    df['Original_label']=df['Label']
+    df= df.filter([cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL, cons.SAMPLE_COL, cons.INTENSITY_COL])
+    df[cons.ORIGINAL_LABEL_COL]=df[cons.LABEL_COL]
     df= convert_labels_to_std(df, iso_tracers)
     df= create_label_column(df, iso_tracers)
     df.drop('index', axis=1, inplace= True)
@@ -129,7 +128,7 @@ def check_error_present(logs):
     :param logs: validation logs after all the validation checks
     :return: Boolean True if error is present
     """
-    if logs[VALIDATION_ERROR]:
+    if logs[cons.VALIDATION_ERROR]:
         return True
     else:
         return False
@@ -144,8 +143,8 @@ def get_extracted_isotracer(label):
     :param label: label column value
     :return: extracted iso-tracer value
     """
-    if label == con.UNLABELLED_LABEL:
-        return con.UNLABELLED_LABEL
+    if label == cons.UNLABELLED_LABEL:
+        return cons.UNLABELLED_LABEL
     else:
         return label.split('-label-')[0]
 
@@ -210,9 +209,9 @@ def column_manipulation(df):
     Returns:
         df : df with added columns and standard column names
     """
-    df[con.PARENT_COL] = df[maven_constants.NAME]
+    df[cons.PARENT_COL] = df[maven_constants.NAME]
     df.rename(
-        columns={con.VAR_COL: con.SAMPLE_COL, con.VAL_COL: con.INTENSITY_COL},
+        columns={cons.VAR_COL: cons.SAMPLE_COL, cons.VAL_COL: cons.INTENSITY_COL},
         inplace=True)
 
     return df
@@ -228,7 +227,7 @@ def get_element_list(maven_df):
     :return: list of unique element in formula column
     """
     element_dict = dict()
-    extracted_formula_series = maven_df[con.FORMULA_COL].apply(get_extracted_element)
+    extracted_formula_series = maven_df[cons.FORMULA_COL].apply(get_extracted_element)
     extracted_formula_series.apply(lambda x: element_dict.update(x))
 
     return element_dict.keys()
@@ -270,7 +269,7 @@ def maven_merge_dfs(df1, df2):
     long_form = melt_df(df1)
     try:
         merged_df = merge_two_dfs(long_form, df2, how='left',
-                            left_on=con.VAR_COL, right_on=maven_constants.SAMPLE)
+                            left_on=cons.VAR_COL, right_on=maven_constants.SAMPLE)
     except KeyError:
         raise KeyError(maven_constants.SAMPLE + ' column not found in metadata')
 

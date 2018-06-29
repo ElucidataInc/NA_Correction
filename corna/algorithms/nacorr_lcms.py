@@ -10,7 +10,7 @@ import pandas as pd
 import matrix_calc as algo
 import corna.inputs.maven_parser as parser
 from corna.autodetect_isotopes import get_element_correction_dict
-from corna.constants import INTENSITY_COL, ISOTOPE_NA_MASS, KEY_NA
+from corna import constants as cons
 from corna.helpers import get_isotope_element, first_sub_second, parse_formula, chemformula_schema
 
 def eleme_corr_invalid_entry(iso_tracers, eleme_corr):
@@ -75,8 +75,17 @@ def multiplying_df_with_matrix(isotracer, corr_mat_for_isotracer, curr_df):
     corr_df.index.name = isotracer
     return corr_df
 
+def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, eleme_corr,final_df):
+    required_df, formula, formula_dict = parser.process_corrected_df_for_metab(df, metab,
+                                                                     iso_tracers, required_col)
+    corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, eleme_corr)
+    df_corr_C_N = correct_df_for_multiplication(iso_tracers, required_df, corr_mats)
+    info_df= parser.add_info_to_final_df(df_corr_C_N, metab, formula[0], iso_tracers)
+    final_df=final_df.append(info_df)
+    return final_df
 
-def na_correction(merged_df, iso_tracers, ppm_input_user, na_dict, eleme_corr, intensity_col=INTENSITY_COL,autodetect=False):
+
+def na_correction(merged_df, iso_tracers, ppm_input_user, na_dict, eleme_corr,autodetect=False):
 
 
     """
@@ -105,45 +114,34 @@ def na_correction(merged_df, iso_tracers, ppm_input_user, na_dict, eleme_corr, i
     eleme_corr_dict = {}
 
     #convert input datframe from long to wide format
-    merged_df=merged_df.pivot_table(index=['Name','Formula','Label'], columns='Sample', values='Intensity')
+    merged_df=merged_df.pivot_table(index=[cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL],
+                                                                     columns=cons.SAMPLE_COL, values= cons.INTENSITY_COL)
     merged_df =merged_df.rename_axis(None, axis=1).reset_index()
     
     std_label_df = parser.convert_labels_to_std(merged_df, iso_tracers)   
      
     if autodetect:
         for metab in std_label_df.Name.unique():
-            
-            required_df, formula, formula_dict = parser.process_corrected_df_for_metab(std_label_df, metab, 
-                                                                    iso_tracers,required_col)
+            formula= std_label_df[std_label_df[cons.NAME_COL]== metab].Formula.unique()
             auto_eleme_corr = get_element_correction_dict(ppm_input_user, formula[0] ,iso_tracers)
             eleme_corr_dict[metab] = auto_eleme_corr
-            corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, eleme_corr)
-            df_corr_C_N = correct_df_for_multiplication(iso_tracers, required_df, corr_mats)
-            info_df= parser.add_info_to_final_df(df_corr_C_N, metab, formula[0], iso_tracers)
-            final_df=final_df.append(info_df)
+            final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict, eleme_corr, final_df)            
     
     else:
         eleme_corr_invalid_entry(iso_tracers, eleme_corr)
         
         for metab in std_label_df.Name.unique():
-            eleme_corr_dict[metab] = eleme_corr  
-            required_df, formula, formula_dict = parser.process_corrected_df_for_metab(std_label_df, metab,
-                                                                     iso_tracers, required_col)
-            corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, eleme_corr)
-            df_corr_C_N = correct_df_for_multiplication(iso_tracers, required_df, corr_mats)
-            info_df= parser.add_info_to_final_df(df_corr_C_N, metab, formula[0], iso_tracers)
-            final_df=final_df.append(info_df)
-        
+            eleme_corr_dict[metab] = eleme_corr 
+            final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict, eleme_corr, final_df) 
+            
     #convert na corrected datframe back from wide format to long format        
-    df_long = pd.melt(final_df, id_vars=['Name', 'Formula', 'Label'])
-    df_long.rename(columns={'variable': 'Sample', 'value':'NA Corrected'},inplace=True)
+    df_long = pd.melt(final_df, id_vars=[cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL])
+    df_long.rename(columns={'variable': cons.SAMPLE_COL, 'value':cons.NA_CORRECTED_COL},inplace=True)
 
     #merge original_df with na corrected df to get specific column information
-    joined= pd.merge(df_long, original_df, left_on=['Name', 'Formula', 'Label', 'Sample'], right_on=['Name', 'Formula','Label', 'Sample'], how='left')        
-    joined= joined.fillna(0)
-    joined.loc[joined.Original_label == 0, 'Original_label'] = joined.Label
-    joined.drop('Label', axis=1, inplace=True)
-    joined.rename(index= str, columns={'Original_label':'Label'}, inplace=True)    
+    joined= pd.merge(df_long, original_df, on=[cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL, cons.SAMPLE_COL],
+                                                                                 how='left').fillna(0)     
+    joined.loc[joined.Original_label == 0, cons.ORIGINAL_LABEL_COL] = joined.Label
+    joined.drop(cons.LABEL_COL, axis=1, inplace=True)
+    joined.rename(index= str, columns={cons.ORIGINAL_LABEL_COL :cons.LABEL_COL}, inplace=True)  
     return joined, eleme_corr_dict
-
-    
