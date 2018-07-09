@@ -9,7 +9,7 @@ from corna.inputs.column_conventions import multiquant
 from corna.inputs import multiquant_parser
 
 
-def na_correction_mimosa(msms_df, isBackground):
+def na_correction_mimosa(msms_df, isBackground, isotope_dict=const.ISOTOPE_NA_MASS):
     """
     This function performs na correction on the input data frame for LCMS/MS file.
     Args:
@@ -34,7 +34,7 @@ def na_correction_mimosa(msms_df, isBackground):
     output_df= pd.DataFrame()
     metab_dict={}
 
-    na= hlp.get_isotope_na(isotracer[0])
+    na= get_isotope_na(isotracer[0], isotope_dict)
 
     final_df['A']=(1 + na * (final_df[const.PARENT_NUM_ATOMS]-final_df[const.PARENT_NUM_LABELED_ATOMS]))
     final_df['B']= na * ((final_df[const.PARENT_NUM_ATOMS]-final_df[const.DAUGHTER_NUM_ATOMS]) -\

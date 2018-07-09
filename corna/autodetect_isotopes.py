@@ -76,7 +76,10 @@ def ppm_validation(ppm_user_input, required_ppm, formula, ele):
 
     if (borderline_ppm_warning(ppm_user_input, required_ppm, formula, ele)) \
        or (ppm_user_input > required_ppm):
-        return True
+       return True
+
+       
+    
 
 
 def get_indistinguishable_ele(isotracer, formula, ppm_user_input,element):
@@ -155,7 +158,7 @@ def get_element_correction_dict(ppm_user_input, formula, isotracer):
     """
 
     element_correction_dict = {}
-    ele_list = (hl.parse_formula_test(formula)).keys()
+    ele_list = (hl.parse_formula(formula)).keys()
     isotracer_list = get_isotope_element_list(isotracer)
     isotope_ele = get_isotope_element_list(cs.MASS_DIFF_DICT.keys())
     ele_list_without_isotracer = set(ele_list) - set(isotracer_list)

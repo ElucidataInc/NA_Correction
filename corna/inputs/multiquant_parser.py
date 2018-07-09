@@ -78,42 +78,6 @@ def get_mass_and_number_of_atoms(df, formula_col, formula_info, iso_tracer,iso_e
     out_df[num_labeled_atoms_col]= get_num_labeled_atoms(iso_tracer, out_df[iso_mass_col], out_df[mol_mass_col])
     return out_df
 
-def get_filtered_raw_mq_df(raw_mq, sample_metadata_mq):
-    """
-    This function apply validation on the the raw_mq df using columns of
-    sample_metadata df as arguments and returns a filtered df
-    according to the validation report.
-
-    The function takes instance of basic_validation class of raw_mq &
-    sample_metadata_mq do validation and returns updated raw_mq df
-    using instance of raw_mq & sample_metadata_mq, it checks for subset and
-    intersection of specific column, which updates the df of raw_mq. It then
-    returns updated df of raw_mq
-
-    Args:
-        raw_mq: instance of basic_validation class for raw_mq file
-        sample_metadata_mq: instance of basic_validation class for sample_metadata_file
-
-    Returns:
-        raw_mq.df: updates df of raw_mq file
-    """
-    # :TODO: update doc with exceptions info
-    try:
-        raw_filename_set = get_set_from_df_column(raw_mq, const.ORIGINAL_FILENAME)
-        set([const.BACKGROUND_SAMPLE]).issubset(raw_filename_set)
-        sample_filename_set = get_set_from_df_column(sample_metadata_mq, const.ORIGINAL_FILENAME)
-        set([const.ORIGINAL_FILENAME]).issubset(sample_filename_set)
-        return raw_mq
-    except Exception as e:
-        raise Exception(e)
-
-
-def get_set_from_df_column(df, col_name):
-    """creates set of a particular column of a df"""
-
-    return set(list(df[col_name]))
-
-
 def mq_merge_meta(input_data, metadata):
     """
     This function combines the MQ input file dataframe and the metadata
@@ -206,12 +170,6 @@ def get_replicates(sample_metadata, sample_name, cohort_name, background_sample)
         replicate_groups.append(hlp.get_unique_values(newdf, background_sample))
     return replicate_groups
 
-
-def get_background_samples(sample_metadata, sample_name, background_sample):
-    sample_background = sample_metadata.set_index(sample_name).to_dict()
-    return sample_background[background_sample]
-
-
 def merge_mq_metadata(mq_df, metdata, sample_metdata):
     merged_data = mq_merge_dfs(mq_df, metdata, sample_metdata)
     merged_data.fillna(0, inplace=True)
@@ -229,7 +187,4 @@ def merge_mq_metadata(mq_df, metdata, sample_metdata):
         sample_metdata = sample_metdata[sample_metdata[multiquant.MQ_SAMPLE_NAME].isin(merged_data[multiquant.SAMPLE])]
         list_of_replicates = get_replicates(
             sample_metdata, multiquant.MQ_SAMPLE_NAME, multiquant.MQ_COHORT_NAME, multiquant.BACKGROUND)
-        sample_background = get_background_samples(
-            sample_metdata, multiquant.MQ_SAMPLE_NAME, multiquant.BACKGROUND)
-    return merged_data, list_of_replicates, sample_background
-
+    return merged_data, list_of_replicates

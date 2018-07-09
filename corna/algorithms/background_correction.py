@@ -21,7 +21,7 @@ def backround_subtraction(input_intensity, noise):
     intensity = input_intensity - noise
     return intensity
 
-def background_correction(msms_df, list_of_replicates):
+def background_correction(msms_df, list_of_replicates, isotope_dict=const.ISOTOPE_NA_MASS):
     """
     This function corrects intensity value errors present due to background noise.
     Args:
@@ -34,7 +34,7 @@ def background_correction(msms_df, list_of_replicates):
     final_df, isotracer= multiquant_parser.add_info_to_df(msms_df)
     output_df= pd.DataFrame()
 
-    na= get_isotope_na(isotracer[0])
+    na= get_isotope_na(isotracer[0], isotope_dict)
 
     final_df[const.UNLABELED]= 'False'
     final_df.loc[final_df[const.PARENT_NUM_LABELED_ATOMS] == 0, const.UNLABELED] = 'True'
@@ -59,7 +59,7 @@ def background_correction(msms_df, list_of_replicates):
             output_df= output_df.append(frag_df)
 
     output_df[const.BACKGROUND_CORRECTED]= output_df[const.INTENSITY_COL]- output_df['replicate_value']
-    output_df= replace_negatives_background(output_df)
+    output_df.drop('replicate_value', axis=1, inplace=True)
     return output_df
 
 def replace_negatives_background(df):

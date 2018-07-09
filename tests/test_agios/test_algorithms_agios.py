@@ -3,16 +3,10 @@ import pandas as pd
 import pytest
 
 import corna.helpers as hl
-import corna.isotopomer as iso
 from corna.algorithms import matrix_calc as algo
-from corna.model import Fragment
-from corna.inputs.maven_parser import MavenKey
-from corna.isotopomer import Infopacket
 
 
 iso_tracer = ['C13']
-
-formula_dict = {'C':2, 'H':4, 'O':2}
 
 no_atom_tracer = 2
 
@@ -33,10 +27,6 @@ correc_inten_dict = {'sample_1': {(0, 1): np.array([ 0.0619]), (0, 0): np.array(
       (2, 0): np.array([ 0.0071]), (5, 0): np.array([ 0.]), (5, 1): np.array([ 0.60045]), \
       (1, 0): np.array([ 0.06665]), (4, 1): np.array([ 0.]), (1, 1): np.array([ 0.0164]), \
        (4, 0): np.array([ 0.])}}
-
-acetic_frag = Fragment('Acetic','H4C2O2',label_dict={'C13':0})
-fragments_dict = {'Acetic_C13_0': iso.Infopacket(frag=acetic_frag, data={'sample_1': np.array([ 0.3624])},
-                                unlabeled=True, name='Acetic')}
 
 label_list = [(0, 1), (0, 0), (3, 0), (3, 1), (2, 1), (2, 0), (5, 0), \
                  (5, 1), (1, 0), (4, 1), (1, 1), (4, 0)]
@@ -63,36 +53,5 @@ def test_make_all_corr_matrices():
         algo.make_all_corr_matrices(iso_tracer, {'H': 1}, na_dict, {'C': []})
 
 
-def test_fragmentdict_model():
-    key = MavenKey(name='Acetic', formula='H4C2O2')
-    assert algo.fragmentsdict_model(df, intensity_col='Intensity')[key]['Acetic_C13_0'].data == {'sample_1': 0.3624}
 
-
-def test_unique_samples_for_dict():
-    A = {'Acetic_C13_0': Infopacket(frag='H4C2O2', data={'sample_1': 0.3624}, unlabeled=True, name='Acetic'),
-         'Acetic_C13_1': Infopacket(frag='H4C2O2', data={'sample_1': 0.040349999999999997}, unlabeled=False,
-                                    name='Acetic'),
-         'Acetic_C13_2': Infopacket(frag='H4C2O2', data={'sample_1': 0.59724999999999995}, unlabeled=False,
-                                    name='Acetic')}
-    assert algo.unique_samples_for_dict(A) == ['sample_1']
-
-
-def test_label_sample_df():
-    assert list(algo.label_sample_df(['C13'], fragments_dict)) == ['sample_1']
-
-
-def test_formuladict():
-    assert algo.formuladict(fragments_dict) == {'H': 4, 'C': 2, 'O': 2}
-
-
-def test_fragmentdict_model():
-    cit_frag = Fragment('Citruline', 'C6H13N3O3', label_dict={'C13': 0})
-    fragments_dict = {'Citruline_C13_0_N15_0': Infopacket(frag=cit_frag, data={'sample_1': np.array([0.3624])},
-                                                          unlabeled=True, name='Acetic')}
-    lab_sam_dict = {(0, 0): {'sample_1': 0.3624}}
-    assert algo.fragmentdict_model(['C13', 'N15'], fragments_dict, lab_sam_dict) == {'Citruline_C13_0_N15_0':
-                                                                                    Infopacket(frag= cit_frag,
-                                                                                               data={'sample_1': 0.3624},
-                                                                                               unlabeled=True,
-                                                                                               name='Acetic')}
 

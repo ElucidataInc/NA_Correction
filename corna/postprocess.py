@@ -1,10 +1,12 @@
 import pandas as pd
 
+from corna import constants as const
+
 def replace_negatives(df):
     """
     This function replaces negative intensity values to zero.
     """
-    df['NA Corrected with zero']= df['NA Corrected'].clip(lower=0)
+    df[const.NA_CORRECTED_WITH_ZERO]= df[const.NA_CORRECTED_COL].clip(lower=0)
     return df
 
 def calculate_pool_total(df):
@@ -17,10 +19,10 @@ def calculate_pool_total(df):
     Returns:
         final_df: dataframe which consists of the calculated values.
     """
-    df['Pool_total']=df['NA Corrected with zero']
-    df1= df.groupby(['Sample','Name'])['Pool_total'].sum().reset_index()
+    df['Pool_total']=df[const.NA_CORRECTED_WITH_ZERO]
+    df1= df.groupby([const.SAMPLE_COL, const.NAME_COL])['Pool_total'].sum().reset_index()
     df.drop('Pool_total', axis=1, inplace=True)
-    df= df.merge(df1, on=['Sample', 'Name'])
+    df= df.merge(df1, on=[const.SAMPLE_COL, const.NAME_COL])
     return df
 
 def fractional_enrichment(df):
@@ -34,14 +36,14 @@ def fractional_enrichment(df):
         final_df: dataframe which consists of the calculated values.
     """
     final_df= pd.DataFrame()
-    df= df.filter(['Sample', 'Name', 'Label','Formula', 'NA Corrected'])
+    df= df.filter([const.SAMPLE_COL, const.NAME_COL, const.LABEL_COL, const.FORMULA_COL, const.NA_CORRECTED_COL])
     df= replace_negatives(df)
 
     df= calculate_pool_total(df)
-    df['Fractional_enrichment']= df['NA Corrected with zero']/df['Pool_total']
+    df[const.FRACTIONAL_ENRICH]= df[const.NA_CORRECTED_WITH_ZERO]/df['Pool_total']
     final_df= df.fillna(0)
-    if 'NA Corrected' in final_df.columns:
-        final_df.drop(['NA Corrected'], axis=1, inplace=True)
-    if 'NA Corrected with zero' in final_df.columns:
-        final_df.drop(['NA Corrected with zero'], axis=1, inplace=True)
+    if const.NA_CORRECTED_COL in final_df.columns:
+        final_df.drop([const.NA_CORRECTED_COL], axis=1, inplace=True)
+    if const.NA_CORRECTED_WITH_ZERO in final_df.columns:
+        final_df.drop([const.NA_CORRECTED_WITH_ZERO], axis=1, inplace=True)
     return final_df
