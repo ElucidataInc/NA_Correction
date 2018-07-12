@@ -83,18 +83,14 @@ def test_ppm_nacorrection():
 	df = pd.DataFrame({'Name': {0: 'L-Methionine', 1: 'L-Methionine'},
 					   'Label': {0: 'C12 PARENT', 1: 'C13-label-1'},
 					   'Intensity': {0: 0.203405, 1: 0.050069999999999996},
-					   'Formula': {0: 'C5H10NO2S', 1: 'C5H10NO2S'},
+					   'Formula': {0: 'C3H7NO3', 1: 'C3H7NO3'},
 					   'Sample': {0: 'sample_1', 1: 'sample_1'}})
 	eleme_corr = {}
-	na_corr_df, corr_dict = na_correction(df, ['C13', 'N15'], 40, na_dict, eleme_corr, 
+	na_corr_df, corr_dict = na_correction(df, ['C13'], 50, na_dict, eleme_corr, 
 											autodetect=True)
-	output_list = [0.3285894465447474, -0.06571788930894949, -0.005306330643483816,
-				 0.0010612661286967635, -0.007153470034923123, 0.0014306940069846248,
-				 0.0007418786567104569, -0.00014837573134209142, -2.8152095292076256e-05,
-				 5.630419058415252e-06, 3.775722416858374e-07, -7.55144483371675e-08]
-	print corr_dict
+	output_list = [0.23724158040530682, 0.019892987315935265, -0.003768610584633319, 0.00010904286339116565]
 	assert list(na_corr_df['NA Corrected']) == output_list
-	assert corr_dict == {'L-Methionine': {'C': [], 'N': ['O17', 'O18']}}
+	assert corr_dict == {'L-Methionine': {'C': ['H', 'O17']}}
 
 
 
