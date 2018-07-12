@@ -1,7 +1,6 @@
 import collections
 from operator import itemgetter
 import os
-from operator import itemgetter
 
 import numpy as np
 import pandas as pd
@@ -28,8 +27,12 @@ VAL_COL = const.VAL_COL
 #     global ISOTOPE_NA_MASS
 #     ISOTOPE_NA_MASS = isotope_dict
 #
+
 def parse_formula(formula):
-    """returns dict of element:number of atoms"""
+    """Returns dict of number of atoms of particuar element in formula
+       Ex: Formula- C2H5O7
+           Dictionary- {'C': 2, 'H': 5, 'O':7}
+    """
     D={}
     if formula is np.nan:
         return D
@@ -40,9 +43,11 @@ def parse_formula(formula):
         else:
             D[x[0]]=int(x[1])
     return D
+
     
 def get_global_isotope_dict():
      return const.ISOTOPE_NA_MASS
+
 
 def get_atomic_weight(element):
     try:
@@ -68,6 +73,7 @@ def get_isotope_mass(iso):
     except KeyError:
         raise KeyError('Check available isotope list', iso)
 
+
 def get_mol_weight(formula):
     """calculate molecular weight
     Returns:
@@ -92,8 +98,6 @@ def get_isotope_natural(iso):
         return const.ISOTOPE_NA_MASS['naturalIsotope'][iso]
     except KeyError:
         raise KeyError('Check available isotope list', iso)
-
-
 
 
 def read_file(path, head=0):
@@ -209,6 +213,7 @@ def _merge_dfs(df1, df2):
                     on=[c.LABEL, c.SAMPLE,
                         c.NAME, c.FORMULA])
 
+
 def get_isotope_na_value_dict(isotope_dict = const.ISOTOPE_NA_MASS):
     """
     This function returns a dictionary of isotopes as keys with na values of the
@@ -230,6 +235,7 @@ def get_isotope_na_value_dict(isotope_dict = const.ISOTOPE_NA_MASS):
         isotope_na_value_dict[isotope] = [NA[natural_iso], NA[isotope]]
 
     return isotope_na_value_dict
+    
 
 def get_na_value_dict(isotope_dict = const.ISOTOPE_NA_MASS):
     """

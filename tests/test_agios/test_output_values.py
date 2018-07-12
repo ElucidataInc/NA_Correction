@@ -56,8 +56,10 @@ def test_na_corr_multi_trac():
 											na_dict, eleme_corr,
 											autodetect=False)
 
-	output_list = [-0.0053063306434838163, 0.32858944654474742]
-	print na_corr_df
+	output_list = [0.3285894465447474, -0.06571788930894949, -0.005306330643483816, 
+				0.0010612661286967635, -0.007153470034923123, 0.0014306940069846248, 
+				0.0007418786567104569, -0.00014837573134209142, -2.8152095292076256e-05, 
+				5.630419058415252e-06, 3.775722416858374e-07, -7.55144483371675e-08]
 	assert na_corr_df['NA Corrected'].tolist() == output_list
 
 
@@ -71,8 +73,10 @@ def test_na_corr_multi_trac_indist():
 	na_corr_df, corr_dict =  na_correction(df, ['C13', 'N15'],'',
 														   na_dict, eleme_corr,
 														   autodetect=False)
-	output_list = [-0.045478760757226011, 0.40215440095785504]
-	print na_corr_df
+	output_list = [0.40215440095785504, -0.08043088019157102, -0.04547876075722601,
+				 0.009095752151445204, -0.04503063995239236, 0.009006127990478473,
+				 0.002629393437085129, -0.000525878687417026, 0.002627198654786159,
+				 -0.000525439730957232, 3.300655199399871e-05, -6.6013103987997436e-06]
 	assert na_corr_df['NA Corrected'].tolist() == output_list
 
 def test_ppm_nacorrection():
@@ -84,13 +88,13 @@ def test_ppm_nacorrection():
 	eleme_corr = {}
 	na_corr_df, corr_dict = na_correction(df, ['C13', 'N15'], 40, na_dict, eleme_corr, 
 											autodetect=True)
-	output_list = [-0.0053063306434838163, 0.32858944654474742]
-	print na_corr_df
+	output_list = [0.3285894465447474, -0.06571788930894949, -0.005306330643483816,
+				 0.0010612661286967635, -0.007153470034923123, 0.0014306940069846248,
+				 0.0007418786567104569, -0.00014837573134209142, -2.8152095292076256e-05,
+				 5.630419058415252e-06, 3.775722416858374e-07, -7.55144483371675e-08]
 	print corr_dict
 	assert list(na_corr_df['NA Corrected']) == output_list
 	assert corr_dict == {'L-Methionine': {'C': [], 'N': ['O17', 'O18']}}
 
-
-test_ppm_nacorrection()
 
 

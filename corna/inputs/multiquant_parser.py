@@ -9,21 +9,24 @@ from corna.inputs.column_conventions import multiquant
 from corna import constants as const
 import corna.helpers as hlp
 
-def add_info_to_df(df):
+
+def add_mass_and_no_of_atoms_info_frm_label(df):
     """
-    This function adds column of parent isotopic mass, daughter isotopic mass, isotracer, no of labeled atoms
-    parent and daughter, total no of atoms parent and daughter to the dataframe.
+    This function adds column of parent isotopic mass, daughter isotopic mass, parent molecular mass,
+    daughter molecular mass, no of labeled atoms parent and daughter,
+    total no of atoms parent and daughter and isotracer column to the dataframe.
     """
-    msms_df= get_input_format(df)
+    msms_df = get_parent_daughter_iso_mass_col_and_isotracer_from_label(df)
     isotracer= msms_df[multiquant.ISOTRACER].unique()
     iso_elem= hlp.get_isotope_element(isotracer[0])
     input_df=pd.DataFrame()
     final_df=pd.DataFrame()
 
-    input_df= get_mass_and_number_of_atoms(msms_df, multiquant.PARENT_FORM, 'PARENT', isotracer[0],iso_elem, input_df)
-    final_df= get_mass_and_number_of_atoms(input_df, multiquant.FORMULA, 'DAUGHTER', isotracer[0],iso_elem, final_df)
+    input_df= get_mol_mass_and_number_of_atoms(msms_df, multiquant.PARENT_FORM, 'PARENT', isotracer[0],iso_elem, input_df)
+    final_df= get_mol_mass_and_number_of_atoms(input_df, multiquant.FORMULA, 'DAUGHTER', isotracer[0],iso_elem, final_df)
 
     return final_df, isotracer
+
 
 def get_num_labeled_atoms(isotope, isotopic_mass, molecular_mass):
     """
@@ -39,9 +42,10 @@ def get_num_labeled_atoms(isotope, isotopic_mass, molecular_mass):
     number_label= label.astype(int)
     return number_label
 
-def get_input_format(msms_df):
+
+def get_parent_daughter_iso_mass_col_and_isotracer_from_label(msms_df):
     """
-    This function creates columns of parent isotopic mass, daughter isotopic mass, isotracer from 
+    This function creates columns of parent isotopic mass, daughter isotopic mass and isotracer from 
     the label column.
     """
     s=msms_df[multiquant.LABEL].apply(lambda x: x.split('_'))
@@ -51,7 +55,23 @@ def get_input_format(msms_df):
     msms_df.rename(columns={multiquant.PARENT_FORMULA: multiquant.PARENT_FORM}, inplace=True)
     return msms_df
 
-def get_mass_and_number_of_atoms(df, formula_col, formula_info, iso_tracer,iso_elem, out_df):
+
+def get_mol_mass_and_number_of_atoms(df, formula_col, formula_info, iso_tracer,iso_elem, out_df):
+    """
+    This function creates the columns of molecular mass of parent and daughter, total no of atoms of
+    isotope in parent formula and daughter formula, number of labeled atoms of isotope in parent 
+    and daughter formula.
+
+    Args:
+        df: input df
+        formula_col: column name of formula column
+        formula_info: PARENT formula or DAUGHTER formula
+        iso_tracer: isotracer present in formula
+        iso_elem: element name of isotracer
+
+    Returns:
+        out_df: output dataframe
+    """
     if formula_info=='PARENT':
         mol_mass_col= const.PARENT_MASS_MOL
         iso_mass_col= const.PARENT_MASS_ISO
@@ -78,6 +98,7 @@ def get_mass_and_number_of_atoms(df, formula_col, formula_info, iso_tracer,iso_e
     out_df[num_labeled_atoms_col]= get_num_labeled_atoms(iso_tracer, out_df[iso_mass_col], out_df[mol_mass_col])
     return out_df
 
+
 def mq_merge_meta(input_data, metadata):
     """
     This function combines the MQ input file dataframe and the metadata
@@ -89,7 +110,7 @@ def mq_merge_meta(input_data, metadata):
         metadata : metadata in the form of pandas dataframe
 
     Returns:
-        combined_data : dataframe with input data and metadata combined
+        merged_df : dataframe with input data and metadata combined
     """
 
     try:
@@ -105,6 +126,10 @@ def mq_merge_meta(input_data, metadata):
 
 
 def merge_samples(merged_df, sample_metadata):
+    """
+    This function merge the raw input dataframe with the sample metadata 
+    dataframe.
+    """
     if sample_metadata is not None:
         col_headers_sample = sample_metadata.columns.values
         col_headers_merged = merged_df.columns.values
@@ -158,6 +183,10 @@ def remove_mq_stds(merged_df):
 
 
 def get_replicates(sample_metadata, sample_name, cohort_name, background_sample):
+    """
+    This function returns the list of sample names which belong
+    to the same cohort.
+    """
     sample_index_df = sample_metadata.set_index(sample_name)
     sample_index_df['Background Cohort'] = sample_index_df[
         background_sample].map(sample_index_df[cohort_name])
@@ -170,7 +199,20 @@ def get_replicates(sample_metadata, sample_name, cohort_name, background_sample)
         replicate_groups.append(hlp.get_unique_values(newdf, background_sample))
     return replicate_groups
 
+
 def merge_mq_metadata(mq_df, metdata, sample_metdata):
+    """
+    This function merge the raw input dataframe with the metadata and 
+    sample metadata.
+    Args:
+        mq_df: raw input df
+        metdata: metadata df
+        sample_metdata: sample metadata df
+
+    Returns:
+        merged_df: merged dataframe
+        list_of_replicates: list of sample names belonging to same cohort.
+    """
     merged_data = mq_merge_dfs(mq_df, metdata, sample_metdata)
     merged_data.fillna(0, inplace=True)
     list_of_replicates = []

@@ -52,6 +52,3 @@ def test_make_all_corr_matrices():
     with pytest.raises(KeyError):
         algo.make_all_corr_matrices(iso_tracer, {'H': 1}, na_dict, {'C': []})
 
-
-
-

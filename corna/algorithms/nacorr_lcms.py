@@ -76,11 +76,11 @@ def multiplying_df_with_matrix(isotracer, corr_mat_for_isotracer, curr_df):
     return corr_df
 
 def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, eleme_corr,final_df):
-    required_df, formula, formula_dict = parser.process_corrected_df_for_metab(df, metab,
+    required_df, formula, formula_dict = parser.filter_required_col_and_get_formula_dict(df, metab,
                                                                      iso_tracers, required_col)
     corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, eleme_corr)
     df_corr_C_N = correct_df_for_multiplication(iso_tracers, required_df, corr_mats)
-    info_df= parser.add_info_to_final_df(df_corr_C_N, metab, formula[0], iso_tracers)
+    info_df= parser.add_name_formula_label_col(df_corr_C_N, metab, formula[0], iso_tracers)
     final_df=final_df.append(info_df)
     return final_df
 
@@ -106,7 +106,7 @@ def na_correction(merged_df, iso_tracers, ppm_input_user, na_dict, eleme_corr,au
         joined: na corrected dataframe
         eleme_corr_dict : dictionary od indistinguishable isotopes used for correction
     """
-    original_df= parser.save_original_df(merged_df, iso_tracers)
+    original_df= parser.save_original_label_and_processed_label(merged_df, iso_tracers)
     
     sample_list=merged_df.Sample.unique()
     required_col=np.append(sample_list, iso_tracers)
@@ -118,7 +118,7 @@ def na_correction(merged_df, iso_tracers, ppm_input_user, na_dict, eleme_corr,au
                                                                      columns=cons.SAMPLE_COL, values= cons.INTENSITY_COL)
     merged_df =merged_df.rename_axis(None, axis=1).reset_index()
     
-    std_label_df = parser.convert_labels_to_std(merged_df, iso_tracers)   
+    std_label_df = parser.get_isotope_columns_frm_label_col(merged_df, iso_tracers)   
      
     if autodetect:
         for metab in std_label_df.Name.unique():

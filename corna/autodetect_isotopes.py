@@ -1,6 +1,7 @@
 import constants as cs
 import helpers as hl
 
+
 def get_ppm_required(formula, delta_m):
     """This function calculates the ppm required to
     distinguish between the two elements in a
@@ -79,9 +80,6 @@ def ppm_validation(ppm_user_input, required_ppm, formula, ele):
        return True
 
        
-    
-
-
 def get_indistinguishable_ele(isotracer, formula, ppm_user_input,element):
     """This function returns element which is indistinguishable for
     a particular isotracer

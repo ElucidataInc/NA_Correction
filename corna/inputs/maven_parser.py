@@ -1,10 +1,11 @@
 import pandas as pd
 
-from corna.helpers import get_isotope_element, first_sub_second, parse_formula, chemformula_schema, read_file, check_column_headers 
+from corna import helpers as hlp
 from column_conventions import maven as maven_constants
 import corna.constants as cons
 
-def convert_labels_to_std(df, iso_tracers):
+
+def get_isotope_columns_frm_label_col(df, iso_tracers):
     """
     This function breaks the labels C13N15-label-1-1 to form columns as C13 and N15 and 
     1 and 1 as values respectively for all labels in a column.
@@ -19,7 +20,7 @@ def convert_labels_to_std(df, iso_tracers):
         else:
             formula, enums = label.split('-label-')
             isotopes = set(''.join(map(str, i))
-            for i in chemformula_schema.parseString(formula))
+            for i in hlp.chemformula_schema.parseString(formula))
             msg = """iso_tracers must have all isotopes from input data
                     Got: {!r}
                     Expected: {!r}
@@ -44,18 +45,21 @@ def convert_labels_to_std(df, iso_tracers):
     del df[cons.LABEL_COL]
     return df
 
-def process_corrected_df_for_metab(df, metabolite, isotracers, required_column):
+
+def filter_required_col_and_get_formula_dict(df, metabolite, isotracers, required_column):
     """
     This function returns formula dict for the formula of metabolite.
+    It also filters the dataframe according to columns required.
     formula- C5H4N3
     formula_dict- {'C':5,'H':4, 'N':3}
     """
     metabolite_df=df[df[cons.NAME_COL]==metabolite]
     formula = metabolite_df.Formula.unique()
-    formula_dict=parse_formula(formula[0])
+    formula_dict=hlp.parse_formula(formula[0])
     metabolite_df.set_index(isotracers, inplace=True) 
     required_df= metabolite_df.filter(required_column)
     return required_df, formula, formula_dict
+
 
 def check_duplicates_in_list(given_list):
     """
@@ -78,7 +82,7 @@ def check_duplicates_in_list(given_list):
     return list(duplicate_list)
 
 
-def create_label_column(df, isotracers):
+def create_label_column_frm_isotope_columns(df, isotracers):
     """
     This function creates the label column back by joining information from multiple splited columns.
     Example:
@@ -98,27 +102,30 @@ def create_label_column(df, isotracers):
 
     return df
 
-def add_info_to_final_df(info_df, metab, formula, iso_tracers):
+
+def add_name_formula_label_col(info_df, metab, formula, iso_tracers):
     """
     Adds required columns back to the na corrected Dataframe 
     Required columns include : Label, Name, Formula
     """
-    info_df=create_label_column(info_df, iso_tracers)
+    info_df=create_label_column_frm_isotope_columns(info_df, iso_tracers)
     info_df[cons.NAME_COL]= metab
     info_df[cons.FORMULA_COL] = formula
     return info_df
 
-def save_original_df(df, iso_tracers):
+
+def save_original_label_and_processed_label(df, iso_tracers):
     """
-    This function modifies Label column from C13-Label-1 to C13N15-Label-1-0.
-    And then returns back the original dataframe.
+    This function modifies Label column from C13-Label-1 to C13N15-Label-1-0, save it as well.
+    And then returns back the dataframe.
     """
     df= df.filter([cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL, cons.SAMPLE_COL, cons.INTENSITY_COL])
     df[cons.ORIGINAL_LABEL_COL]=df[cons.LABEL_COL]
-    df= convert_labels_to_std(df, iso_tracers)
-    df= create_label_column(df, iso_tracers)
+    df= get_isotope_columns_frm_label_col(df, iso_tracers)
+    df= create_label_column_frm_isotope_columns(df, iso_tracers)
     df.drop('index', axis=1, inplace= True)
     return df
+
 
 def check_error_present(logs):
     """
@@ -131,6 +138,7 @@ def check_error_present(logs):
         return True
     else:
         return False
+
 
 def get_extracted_isotracer(label):
     """
@@ -156,7 +164,7 @@ def get_extracted_element(formula):
     :return: dict with keys containing different elements in the formula
     """
     # TODO: Similar to get formula can be modified for further advancement
-    return parse_formula(formula)
+    return hlp.parse_formula(formula)
 
 
 def get_extraced_isotracer_df(maven_df):
@@ -180,6 +188,7 @@ def get_isotracer_dict(maven_df):
     isotracer_df = get_extraced_isotracer_df(maven_df)
     return isotracer_df.value_counts().to_dict()
 
+
 def convert_inputdata_to_stdfrom(input_df):
     """
     This function convert the input data file(maven format) into standard data model. It gives
@@ -196,6 +205,7 @@ def convert_inputdata_to_stdfrom(input_df):
     long_form = melt_df(input_df)
     std_form_df = column_manipulation(long_form)
     return std_form_df
+
 
 def column_manipulation(df):
     """
@@ -243,7 +253,7 @@ def melt_df(df1):
     """
     fixed_cols = [maven_constants.NAME, maven_constants.LABEL, maven_constants.FORMULA]
     col_headers = df1.columns.tolist()
-    check_column_headers(col_headers, fixed_cols)
+    hlp.check_column_headers(col_headers, fixed_cols)
     melt_cols = [x for x in col_headers if x not in fixed_cols]
 
     #try:
@@ -253,6 +263,8 @@ def melt_df(df1):
     #except KeyError():
         #raise KeyError('columns {} not found in input data'.format(','.join(fixed_cols)))
     return long_form
+
+
 def maven_merge_dfs(df1, df2):
     """
     This function combines the MAVEN input file dataframe and the metadata
@@ -267,13 +279,14 @@ def maven_merge_dfs(df1, df2):
     """
     long_form = melt_df(df1)
     try:
-        merged_df = merge_two_dfs(long_form, df2, how='left',
+        merged_df = hlp.merge_two_dfs(long_form, df2, how='left',
                             left_on=cons.VAR_COL, right_on=maven_constants.SAMPLE)
     except KeyError:
         raise KeyError(maven_constants.SAMPLE + ' column not found in metadata')
 
     df_std_form = column_manipulation(merged_df)
     return df_std_form
+    
 
 def get_merge_df(maven_df, metadata_df):
     """
@@ -290,22 +303,25 @@ def get_merge_df(maven_df, metadata_df):
 
 
 
-def read_maven_file(maven_file_path, maven_df, metadata_df,validation_logs,summary):
+def read_maven_file(maven_file_path, maven_df, metadata_df,validation_logs):
     """
-    This function reads maven and metadata file, convert it to df and
-    checks for validation of files. If validation does not raise any
-    error it returns mergedf with logs and iso-tracer data.
+    This function reads maven and metadata df. If validation does not 
+    raise any error it returns mergedf with logs and iso-tracer data.
     :param maven_file_path: absolute path of maven raw file
-    :param maven_sample_metadata_path: absolute path of metadatafile
+    :param maven_df: maven raw dataframe
+    :param metadata_df: metadata dataframe if present otherwise empty df.
+    :param validation_logs: logs after validation of input files.
     :return: mergedf : merge df of Maven and Metadata File
-             logs: dictionary of errors and warnings
-             iso-tracer : dictionary of iso-tracer details
+             validation_logs: dictionary of errors and warnings
+             isotracer_dict : dictionary of iso-tracer details
+             unique_element_lis: list of unique elements present 
+                                in formula column
     """
     if not check_error_present(validation_logs):
         isotracer_dict = get_isotracer_dict(maven_df)
         merged_df = get_merge_df(maven_df, metadata_df)
         unique_element_list = get_element_list(maven_df)
-        raw_df_with_no_header = read_file(maven_file_path, head=None)
+        raw_df_with_no_header = hlp.read_file(maven_file_path, head=None)
         list_of_columns = list(raw_df_with_no_header.iloc[0])
         duplicate_column_list = check_duplicates_in_list(list_of_columns)
         if duplicate_column_list: 
@@ -313,7 +329,7 @@ def read_maven_file(maven_file_path, maven_df, metadata_df,validation_logs,summa
             action_mesaage = "Column are renamed and appended"
             validation_logs['warnings']['message'].append(duplicate_message)
             validation_logs['warnings']['action'].append(action_mesaage)
-        return merged_df, validation_logs, isotracer_dict, unique_element_list, summary
+        return merged_df, validation_logs, isotracer_dict, unique_element_list
     else:
-        return corrected_maven_df, validation_logs, None, None, summary
+        return maven_df, validation_logs, None, None
 
