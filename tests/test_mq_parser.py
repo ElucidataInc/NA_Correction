@@ -13,6 +13,9 @@ MQ_FILE_PATH = os.path.join(DIR_PATH, 'test_input_validation_data', "raw_mq.txt"
 MQ_METADATA_PATH = os.path.join(DIR_PATH, 'test_input_validation_data', "metadata_mq.xlsx")
 MQ_SAMPLE_METADATA_PATH = os.path.join \
     (DIR_PATH, 'test_input_validation_data', "metadata_sample.xlsx")
+mq_df= df = pd.read_csv(MQ_FILE_PATH, sep='\t|,', engine='python')
+metadata_df= pd.read_excel(MQ_METADATA_PATH)
+sample_metadata_df= pd.read_excel(MQ_SAMPLE_METADATA_PATH)
 
 INPUT_FILES = {"mq_file_path": MQ_FILE_PATH, \
                    "mq_metadata_path": MQ_METADATA_PATH, \
@@ -23,6 +26,13 @@ INPUT_FILES_WITHOUT_METADATA = {"mq_file_path": MQ_FILE_PATH,
                                 "mq_sample_metadata_path": ''}
 
 # TODO : fixtures can be defined for many constants
+
+    '''
+    def test_merge_mq_metadata():
+        result= multiquant_parser.merge_mq_metadata(mq_df, metadata_df, sample_metadata_df)
+        assert result[0]
+    '''
+
 def test_get_instance():
     """checks if this function returns instance of correct class
 
