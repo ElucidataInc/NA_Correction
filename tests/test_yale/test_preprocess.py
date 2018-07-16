@@ -141,6 +141,9 @@ def test_background_noise_label_daughter_label():
 def test_backround_subtraction():
     assert preproc.backround_subtraction(27800, 2.29E+03) == 25510.0
 
+def test_background_subtraction_negative():
+    assert preproc.backround_subtraction(278, 280) == 0
+
 
 def test_background():
     background_dict = preproc.background(list_of_replicates, input_fragment[('2PG 186/79_186.0', '2PG 186/79_79.0')],

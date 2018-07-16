@@ -21,7 +21,10 @@ def background_noise(unlabel_intensity, na, parent_atoms, parent_label, daughter
 
 def backround_subtraction(input_intensity, noise):
     intensity = input_intensity - noise
-    return intensity
+    if intensity > 0 :
+        return intensity
+    else:
+        return 0
 
 
 def background(list_of_replicates, input_fragment_value, unlabeled_fragment_value, isotope_dict):
