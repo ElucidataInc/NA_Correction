@@ -6,6 +6,12 @@ from corna.algorithms.nacorr_lcms import na_correction
 single_tracers = ['C13']
 multi_tracers = ['C13', 'N15']
 na_dict = {'H':[0.98,0.01,0.01], 'C': [0.95, 0.05], 'S': [0.922297, 0.046832, 0.030872], 'O':[0.95,0.03,0.02], 'N': [0.8, 0.2]}
+na_dict_auto= {'C':[0.9889,0.0111],
+'N':[0.9964,0.0036],
+'O':[0.9976,0.0004,0.002],
+'H':[0.99985,0.00015],
+'S':[0.95,0.0076,0.0424],
+}
 
 def test_na_corr_single_tracer():
 	df = pd.DataFrame({'Name': {0: 'Acetic', 1: 'Acetic', 2: 'Acetic'},
@@ -20,6 +26,7 @@ def test_na_corr_single_tracer():
 
 	na_corr_df, corr_dct = na_correction(df, ['C13'], '', na_dict, eleme_corr,
 									       autodetect=False)
+	print na_corr_df
 
 	output_list = [0.4015512465373961, 0.0023185595567865968, 0.59613019390581734]
 
@@ -80,17 +87,16 @@ def test_na_corr_multi_trac_indist():
 	assert na_corr_df['NA Corrected'].tolist() == output_list
 
 def test_ppm_nacorrection():
-	df = pd.DataFrame({'Name': {0: 'L-Methionine', 1: 'L-Methionine'},
+	df = pd.DataFrame({'Name': {0: 'Pyruvic acid', 1: 'Pyruvic acid'},
 					   'Label': {0: 'C12 PARENT', 1: 'C13-label-1'},
-					   'Intensity': {0: 0.203405, 1: 0.050069999999999996},
-					   'Formula': {0: 'C3H7NO3', 1: 'C3H7NO3'},
+					   'Intensity': {0: 287515.1, 1: 7354.636},
+					   'Formula': {0: 'C3H4O3', 1: 'C3H4O3'},
 					   'Sample': {0: 'sample_1', 1: 'sample_1'}})
 	eleme_corr = {}
-	na_corr_df, corr_dict = na_correction(df, ['C13'], 50, na_dict, eleme_corr, 
+	na_corr_df, corr_dict = na_correction(df, ['C13'], 50, na_dict_auto, eleme_corr, 
 											autodetect=True)
-	output_list = [0.23724158040530682, 0.019892987315935265, -0.003768610584633319, 0.00010904286339116565]
+
+	output_list = [297484.35034520662, -2557.5824049265775, -57.580996614900414, 0.54905682625541885]
 	assert list(na_corr_df['NA Corrected']) == output_list
-	assert corr_dict == {'L-Methionine': {'C': ['H', 'O17']}}
-
-
+	assert corr_dict == {'Pyruvic acid': {'C': ['H', 'O17']}}
 

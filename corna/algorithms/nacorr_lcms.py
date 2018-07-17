@@ -80,7 +80,7 @@ def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, el
                                                                      iso_tracers, required_col)
     corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, eleme_corr)
     df_corr_C_N = correct_df_for_multiplication(iso_tracers, required_df, corr_mats)
-    info_df= parser.add_name_formula_label_col(df_corr_C_N, metab, formula[0], iso_tracers)
+    info_df= parser.add_name_formula_label_col(df_corr_C_N, metab, formula[0], iso_tracers, eleme_corr)
     final_df=final_df.append(info_df)
     return final_df
 
@@ -125,17 +125,19 @@ def na_correction(merged_df, iso_tracers, ppm_input_user, na_dict, eleme_corr,au
             formula= std_label_df[std_label_df[cons.NAME_COL]== metab].Formula.unique()
             auto_eleme_corr = get_element_correction_dict(ppm_input_user, formula[0] ,iso_tracers)
             eleme_corr_dict[metab] = auto_eleme_corr
-            final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict, eleme_corr, final_df)            
+            final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict,
+                                                     auto_eleme_corr, final_df)            
     
     else:
         eleme_corr_invalid_entry(iso_tracers, eleme_corr)
         
         for metab in std_label_df.Name.unique():
             eleme_corr_dict[metab] = eleme_corr 
-            final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict, eleme_corr, final_df) 
+            final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict,
+                                                     eleme_corr, final_df) 
             
     #convert na corrected datframe back from wide format to long format        
-    df_long = pd.melt(final_df, id_vars=[cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL])
+    df_long = pd.melt(final_df, id_vars=[cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL, cons.INDIS_ISOTOPE_COL])
     df_long.rename(columns={'variable': cons.SAMPLE_COL, 'value':cons.NA_CORRECTED_COL},inplace=True)
 
     #merge original_df with na corrected df to get specific column information
