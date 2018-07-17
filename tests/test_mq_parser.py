@@ -27,11 +27,6 @@ INPUT_FILES_WITHOUT_METADATA = {"mq_file_path": MQ_FILE_PATH,
 
 # TODO : fixtures can be defined for many constants
 
-    '''
-    def test_merge_mq_metadata():
-        result= multiquant_parser.merge_mq_metadata(mq_df, metadata_df, sample_metadata_df)
-        assert result[0]
-    '''
 
 def test_get_instance():
     """checks if this function returns instance of correct class
