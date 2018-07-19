@@ -10,7 +10,6 @@ import os
 import json
 
 elementdata = os.path.join(os.path.dirname(__file__),'element_data.json')
-print elementdata
 with open(elementdata) as data_file:
     data = json.load(data_file)
 

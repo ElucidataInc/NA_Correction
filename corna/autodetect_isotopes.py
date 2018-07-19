@@ -149,7 +149,7 @@ def get_element_correction_dict(ppm_user_input, formula, isotracer):
 
     Args:
         ppm_user_input: ppm of the machine used.
-        formula: formula of the metabolitels
+        formula: formula of the metabolites
 
         isotracer: labelled element which is to be corrected
 
