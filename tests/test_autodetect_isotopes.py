@@ -8,11 +8,11 @@ def test_get_ppm_required():
 
 
 def test_indistinguishable_ele_none():
-    assert auto.get_indistinguishable_ele('C', 'N', 'C6H6N', 6) == None
+    assert auto.get_indistinguishable_ele('C', 'C6H6N', 6, 'N') == None
 
 
 def test_get_indistinguishable_ele():
-    assert auto.get_indistinguishable_ele('C', 'N', 'C16H16O23N12',  2000) == None
+    assert auto.get_indistinguishable_ele('C', 'C16H16O23N12',  2000, 'N') == None
 
 
 def test_ppm_validation_borderline():
@@ -28,7 +28,7 @@ def test_ppm_validation_false():
 
 
 def test_get_element_correction_dict():
-    assert auto.get_element_correction_dict(400, 'C14H65O9', ['C13']) == {'C': ['H', 'O17']}
+    assert auto.get_element_correction_dict(400, 'C14H65O9', ['C13']) == {'C': ['H', 'O17', 'O18']}
 
 
 def test_get_element_correction_dict_two_isotracer():
@@ -40,7 +40,7 @@ def test_get_element_correction_dict_without_isotracer():
 
 
 def test_get_element_correction_dict_keyerror():
-    assert auto.get_element_correction_dict(20, 'C6H6NOPS', ['S34']) == {'S': []}
+    assert auto.get_element_correction_dict(20, 'C6H6NOPS', ['S34']) == {'S': ['N']}
 
 
 def test_raise_borderline_ppm_warning():
@@ -51,7 +51,7 @@ def test_borderline_ppm_warning():
     assert auto.borderline_ppm_warning(30, 300.1, 'C5H5', 'H') == None
 
 def test_get_mass_diff():
-    assert auto.get_mass_diff('C13', 'N') == 0.0063199068000000524
+    assert auto.get_mass_diff('C13', 'N') == 0.0063199444
 
 def test_get_mass_diff_keyerror():
     assert auto.get_mass_diff('C13','P') == None
