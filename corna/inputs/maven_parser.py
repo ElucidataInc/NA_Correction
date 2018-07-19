@@ -52,6 +52,17 @@ def filter_required_col_and_get_formula_dict(df, metabolite, isotracers, require
     It also filters the dataframe according to columns required.
     formula- C5H4N3
     formula_dict- {'C':5,'H':4, 'N':3}
+
+    Parameters:
+        df: Dataframe to be processed
+        metabolit: metabolite name
+        isotracer: list of isotracers
+        required_column: columns required for processing.
+
+    Returns:
+        required_df: df required for processing.
+        formula: formula of metabolite
+        formula_dict: dict of form- element:no. of atoms present in formula
     """
     metabolite_df=df[df[cons.NAME_COL]==metabolite]
     formula = metabolite_df.Formula.unique()
@@ -107,6 +118,17 @@ def add_name_formula_label_col(info_df, metab, formula, iso_tracers, eleme_corr)
     """
     Adds required columns back to the na corrected Dataframe 
     Required columns include : Label, Name, Formula, indistinguishable_isotope_dict
+
+    Args:
+        info_df: df to be processed
+        metab: metabolite name
+        formula: formula of metabolite
+        iso_tracers: list of isotracers
+        eleme_corr: if user selects autodetect=False, they can give a standard
+                    dict of indistinguishable elements for correction.
+                    eg - {'C13':['H','O']}
+    Returns:
+        info_df: processed dataframe.
     """
     info_df=create_label_column_frm_isotope_columns(info_df, iso_tracers)
     info_df[cons.NAME_COL]= metab
@@ -119,6 +141,13 @@ def save_original_label_and_processed_label(df, iso_tracers):
     """
     This function modifies Label column from C13-Label-1 to C13N15-Label-1-0, save it as well.
     And then returns back the dataframe.
+
+    Args:
+        df: dataframe to be processed.
+        iso_tracers: list of isotracers present.
+
+    Returns:
+        df: processed dataframe
     """
     df= df.filter([cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL, cons.SAMPLE_COL, cons.INTENSITY_COL])
     df[cons.ORIGINAL_LABEL_COL]=df[cons.LABEL_COL]

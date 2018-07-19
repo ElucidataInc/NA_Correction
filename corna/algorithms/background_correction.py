@@ -12,7 +12,8 @@ from corna.inputs import multiquant_parser
 def background_noise(unlabel_intensity, na, parent_atoms, parent_label,
                                              daughter_atoms, daughter_label):
     """
-    This function returns noise due to each sample for a particular cohort.
+    This function returns noise for a particular cohort group calculated through the
+    intensity of the unlabeled fragment(C12 PARENT) of that cohort group.
 
     Parameters
     ----------
@@ -41,6 +42,17 @@ def background_noise(unlabel_intensity, na, parent_atoms, parent_label,
 
 
 def background_subtraction(input_intensity, noise):
+    """
+    This function returns background noise of each sample.
+    If background noise is negative it returns zero.
+
+    Parameters
+    ----------
+    input_intensity : int
+        intensity of sample
+    noise : int 
+        noise of cohort group    
+    """
     intensity = input_intensity - noise
     if intensity > 0:
         return intensity
@@ -52,11 +64,15 @@ def background_correction(msms_df, list_of_replicates, isotope_dict=const.ISOTOP
     """
     This function corrects intensity value errors present due to background noise.
     
-    Args:
-        msms_df: Dataframe which contains intensities to be corrected.
-        list_of_replicates: List consisting all the sample group for each cohort.
+    Parameters
+    ----------
+    msms_df:
+         Dataframe which contains intensities to be corrected.
+    list_of_replicates:
+         List consisting all the sample group for each cohort.
 
-    Returns:
+    Returns
+    -------
         output_df: Background corrected dataframe
     """
     final_df, isotracer = multiquant_parser.add_mass_and_no_of_atoms_info_frm_label(msms_df)

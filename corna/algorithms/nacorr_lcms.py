@@ -76,6 +76,25 @@ def multiplying_df_with_matrix(isotracer, corr_mat_for_isotracer, curr_df):
     return corr_df
 
 def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, eleme_corr,final_df):
+    """
+    This function performs na correcion for each metabolite one by one, adds required info
+    back to the dataframe and then returns the NA corrected dataframe.
+
+    Args:
+        df: data frame of one metabolite which contains intensities which are to be corrected
+        metab: metabolite name whose dataframe is passed
+        iso_tracers: list of labeled elements. eg ['C13', 'N15']
+        required_col: list of column names required for na correction calculations.
+        na_dict: dictionary with natural abundance values of the elements.
+        eleme_corr: if user selects autodetect=False, they can give a standard
+                    dict of indistinguishable elements for correction.
+                    eg - {'C13':['H','O']}
+        final_df: NA corrected df of other metabolites which needs to be appended to the calculated df.
+
+    Returns:
+        final_df: NA corrected dataframe of a single metabolite                
+    
+    """
     required_df, formula, formula_dict = parser.filter_required_col_and_get_formula_dict(df, metab,
                                                                      iso_tracers, required_col)
     corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, eleme_corr)
@@ -86,8 +105,6 @@ def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, el
 
 
 def na_correction(merged_df, iso_tracers, ppm_input_user, na_dict, eleme_corr,autodetect=False):
-
-
     """
     This function performs na correction on the input data frame for LCMS file. 
     Args:

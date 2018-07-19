@@ -45,10 +45,10 @@ def make_correction_matrix(trac_atom, formuladict, na_dict, indist_elems):
     """create matrix M such that Mx=y where y is the observed isotopic distribution
     and x is the expected distribution of input labels
 
-    atom_bag: dict of element:number of atoms in molecule (e.g. {'C':2,'O':1,'H':6})
-    label_elem: element with input labeling
+    formuladict: dict of element:number of atoms in molecule (e.g. {'C':2,'O':1,'H':6})
+    trac_atom: element with input labeling
     indist_elems: elements with identical mass shift
-    na_dict: dict of element:expected isotopic distribution
+    na_dict: dict of - element:expected isotopic distribution
     :TODO This function relates to issue NCT-247. Need to change the function
     in more appropriate way.
     """
@@ -62,7 +62,18 @@ def make_correction_matrix(trac_atom, formuladict, na_dict, indist_elems):
 
 def make_all_corr_matrices(isotracers, formula_dict, na_dict, eleme_corr):
     """
-    This function forms correction matrix according to each isotracer.
+    This function forms correction matrix M, such that Mx=y where y is the 
+    observed isotopic distribution and x is the expected distribution of input
+    labels, for each indistinguishable element for a particular isotracer one by one. 
+    Args:
+    isotracers - list of isotracers presnt in the formula.
+    formula_dict - dict of form- element:number of atoms in molecule (e.g. {'C':2,'O':1,'H':6})
+    na_dict - dict of form- element:expected isotopic distribution
+    eleme_corr - dict of form- isotracer_element:indistinguishable elements list(elements with identical mass shift)
+                 Eg- { 'C13': ['H', 'O17'], 'N15': ['H']}
+
+    Returns:
+    corr_mats - dict of form- isotracer_element: correction matrix
     """
     corr_mats = {}
     for isotracer in isotracers:

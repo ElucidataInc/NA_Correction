@@ -61,6 +61,10 @@ def check_if_isotope_in_dict(iso):
 
 
 def get_isotope_element(iso):
+    """
+    Get element of the isotope.
+    Ex: C13-> C
+    """
     try:
         return const.ISOTOPE_NA_MASS['element'][iso]
     except KeyError:
@@ -68,6 +72,7 @@ def get_isotope_element(iso):
 
 
 def get_isotope_mass(iso):
+    """ Get mass of isotope. """
     try:
         return const.ISOTOPE_NA_MASS['amu'][iso]
     except KeyError:
@@ -87,6 +92,9 @@ def get_mol_weight(formula):
 
 
 def get_isotope_na(iso, isotope_dict=const.ISOTOPE_NA_MASS):
+    """
+    Get Natural Abundance value of a isotope.
+    """
     try:
         return isotope_dict['naValue'][iso]
     except KeyError:
@@ -94,6 +102,10 @@ def get_isotope_na(iso, isotope_dict=const.ISOTOPE_NA_MASS):
 
 
 def get_isotope_natural(iso):
+    """
+    Get naturally present isotope of a particular isotope.
+    Ex: C13 -> C12
+    """
     try:
         return const.ISOTOPE_NA_MASS['naturalIsotope'][iso]
     except KeyError:
@@ -209,6 +221,7 @@ def merge_multiple_dfs(df_list):
 
 
 def _merge_dfs(df1, df2):
+    """ merge two df's: df1 and df2 """
     return pd.merge(df1, df2,
                     on=[c.LABEL, c.SAMPLE,
                         c.NAME, c.FORMULA])
@@ -296,10 +309,12 @@ def check_column_headers(col_headers, col_names):
 
 
 def first_sub_second(a, b):
+    """ list (a-b) """
     return [item for item in a if item not in b]
 
 
 def get_metabolite(fragment):
+    """ Get metabolite name from fragment name. """
     metab_name = fragment.split(' ')
     return metab_name[0]
 

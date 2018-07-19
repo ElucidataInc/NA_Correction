@@ -73,6 +73,9 @@ def test_background_noise_label_daughter_label():
 def test_backround_subtraction():
     assert preproc.background_subtraction(27800, 2.29E+03) == 25510.0
 
+def test_background_subtraction_negative():
+     assert preproc.background_subtraction(278, 280) == 0
+
 def test_background_correction():
     result = preproc.background_correction(df, list_of_replicates)
     output_list =[51666.0,52361.856 ,52538.436,

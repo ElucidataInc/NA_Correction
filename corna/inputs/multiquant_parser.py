@@ -31,6 +31,15 @@ def add_mass_and_no_of_atoms_info_frm_label(df):
 def get_num_labeled_atoms(isotope, isotopic_mass, molecular_mass):
     """
     This function returns no of labeled atoms of isotracer from isotopic mass and molecular mass of compound.
+
+    Parameters:
+        isotope: isotope element used for labeling
+        isotopic_mass: mass of compound due to presence of isotope.
+        molecular_mass: molecular mass of compound.
+
+    Returns:
+        number_label: number of labeled atoms in the formula.
+
     """
     nat_iso = hlp.get_isotope_natural(isotope)
     if nat_iso == isotope:
@@ -161,6 +170,9 @@ def merge_samples(merged_df, sample_metadata):
 
 
 def mq_merge_dfs(input_data, metadata, sample_metadata):
+    """
+    First merge metadata with the raw input file and then merge sample metadata file.
+    """
     merged_data = mq_merge_meta(input_data, metadata)
     return merge_samples(merged_data, sample_metadata)
 
@@ -186,6 +198,21 @@ def get_replicates(sample_metadata, sample_name, cohort_name, background_sample)
     """
     This function returns the list of sample names which belong
     to the same cohort.
+
+    Parameters
+    ----------
+        sample_metadata : DataFrame
+            sample metadata df
+        sample_name : string
+            column name of column containing information of original filename
+        cohort name : string
+            column name of column containing information of cohort name.
+        background sample: string
+            column name of column containing information of corresponding background file names.
+    
+    Returns
+    -------
+        replicate_groups: list of sample names which belong to the same cohort.
     """
     sample_index_df = sample_metadata.set_index(sample_name)
     sample_index_df['Background Cohort'] = sample_index_df[
