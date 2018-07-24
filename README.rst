@@ -1,5 +1,3 @@
-Elucidata Corna Package
-
 Running the package:
 
 1. Go to the directory where setup.py file is present.
