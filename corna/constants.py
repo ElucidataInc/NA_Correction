@@ -193,7 +193,7 @@ ISOTOPE_DICT = {'O': ['O17', 'O18'], 'S': ['S33', 'S34'], 'Si': ['Si29', 'Si30']
 ISOTOPE_LIST = ['O17', 'O18', 'S33', 'S34', 'Si29', 'Si30']
 
 ##Output column names
-INDIS_ISOTOPE_COL = 'Indistinguishale_isotope'
+INDIS_ISOTOPE_COL = 'Indistinguishable_isotope'
 POOL_TOTAL_COL = 'Pool_total'
 METABOLITE_NAME = 'metab_name'
 

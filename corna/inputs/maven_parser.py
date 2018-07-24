@@ -66,7 +66,7 @@ def filter_required_col_and_get_formula_dict(df, metabolite, isotracers, require
     """
     metabolite_df=df[df[cons.NAME_COL]==metabolite]
     formula = metabolite_df.Formula.unique()
-    formula_dict=hlp.parse_formula(formula[0])
+    formula_dict = hlp.parse_formula(formula[0])
     metabolite_df.set_index(isotracers, inplace=True) 
     required_df= metabolite_df.filter(required_column)
     return required_df, formula, formula_dict
@@ -81,16 +81,8 @@ def check_duplicates_in_list(given_list):
     :param given_list:
     :return: duplicate_list : list of all the duplicates in given list
     """
-    first_occurrence = set()
-    duplicate_list = set()
-    first_occurrence_add = first_occurrence.add
-    duplicate_list_add = duplicate_list.add
-    for item in given_list:
-        if item in first_occurrence:
-            duplicate_list_add(item)
-        else:
-            first_occurrence_add(item)
-    return list(duplicate_list)
+    duplicate_list = [x for x in given_list if given_list.count(x) > 1 ] 
+    return list(set(duplicate_list))
 
 
 def create_label_column_frm_isotope_columns(df, isotracers):
@@ -286,12 +278,11 @@ def melt_df(df1):
     hlp.check_column_headers(col_headers, fixed_cols)
     melt_cols = [x for x in col_headers if x not in fixed_cols]
 
-    #try:
+    try:    
+        long_form = pd.melt(df1, id_vars=fixed_cols, value_vars=melt_cols)
     
-    long_form = pd.melt(df1, id_vars=fixed_cols, value_vars=melt_cols)
-    
-    #except KeyError():
-        #raise KeyError('columns {} not found in input data'.format(','.join(fixed_cols)))
+    except KeyError():
+        raise KeyError('columns {} not found in input data'.format(','.join(fixed_cols)))
     return long_form
 
 
@@ -333,7 +324,7 @@ def get_merge_df(maven_df, metadata_df):
 
 
 
-def read_maven_file(maven_file_path, maven_df, metadata_df,validation_logs):
+def read_maven_file(maven_file_path, maven_df, metadata_df):
     """
     This function reads maven and metadata df. If validation does not 
     raise any error it returns mergedf with logs and iso-tracer data.
@@ -342,24 +333,12 @@ def read_maven_file(maven_file_path, maven_df, metadata_df,validation_logs):
     :param metadata_df: metadata dataframe if present otherwise empty df.
     :param validation_logs: logs after validation of input files.
     :return: mergedf : merge df of Maven and Metadata File
-             validation_logs: dictionary of errors and warnings
              isotracer_dict : dictionary of iso-tracer details
              unique_element_lis: list of unique elements present 
                                 in formula column
     """
-    if not check_error_present(validation_logs):
-        isotracer_dict = get_isotracer_dict(maven_df)
-        merged_df = get_merge_df(maven_df, metadata_df)
-        unique_element_list = get_element_list(maven_df)
-        raw_df_with_no_header = hlp.read_file(maven_file_path, head=None)
-        list_of_columns = list(raw_df_with_no_header.iloc[0])
-        duplicate_column_list = check_duplicates_in_list(list_of_columns)
-        if duplicate_column_list: 
-            duplicate_message = "Found column " + ','.join(duplicate_column_list) + " are duplicated"
-            action_mesaage = "Column are renamed and appended"
-            validation_logs['warnings']['message'].append(duplicate_message)
-            validation_logs['warnings']['action'].append(action_mesaage)
-        return merged_df, validation_logs, isotracer_dict, unique_element_list
-    else:
-        return maven_df, validation_logs, None, None
+    isotracer_dict = get_isotracer_dict(maven_df)
+    merged_df = get_merge_df(maven_df, metadata_df)
+    unique_element_list = get_element_list(maven_df)
+    return merged_df, isotracer_dict, unique_element_list
 

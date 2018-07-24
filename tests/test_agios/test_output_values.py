@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import pytest
 
@@ -100,3 +101,18 @@ def test_ppm_nacorrection():
 	assert list(na_corr_df['NA Corrected']) == output_list
 	assert corr_dict == {'Pyruvic acid': {'C': ['H', 'O17']}}
 
+
+
+"""
+def test_autodetect_nacorr():
+	df = pd.DataFrame({'Name': {0: 'Pyruvic acid', 1: 'Pyruvic acid'},
+					   'Label': {0: 'C12 PARENT', 1: 'C13N15-label-3-1'},
+					   'Intensity': {0: 0.3303, 1: 0.5065},
+					   'Formula': {0: 'C10H17N3O6S', 1: 'C10H17N3O6S'},
+					   'Sample': {0: 'sample_1', 1: 'sample_1'}})
+	#eleme_corr = {}
+	eleme_corr = {'C':['H','O','O'], 'N':['S']}
+	na_corr_df, corr_dict = na_correction(df, ['C13','N15'], 10, na_dict_auto, eleme_corr, 
+											autodetect=False)
+	print na_corr_df
+"""
