@@ -66,7 +66,13 @@ def filter_required_col_and_get_formula_dict(df, metabolite, isotracers, require
     """
     metabolite_df=df[df[cons.NAME_COL]==metabolite]
     formula = metabolite_df.Formula.unique()
-    formula_dict = hlp.parse_formula(formula[0])
+    if len(formula) == 1:
+        formula_dict = hlp.parse_formula(formula[0])
+    else:
+        lst = metabolite_df.Formula.tolist()
+        formula_unique = max(lst,key=lst.count)
+        metabolite_df.Formula = formula_unique
+        formula_dict = hlp.parse_formula(formula_unique)
     metabolite_df.set_index(isotracers, inplace=True) 
     required_df= metabolite_df.filter(required_column)
     return required_df, formula, formula_dict
