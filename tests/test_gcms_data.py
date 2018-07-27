@@ -5,7 +5,7 @@ import pickle
 import corna
 
 path_dir = os.path.join(os.path.dirname(__file__),"test_data")
-gcms_corr_merged = pickle.load(open(os.path.join(path_dir,"gcms_corr.p"),"r"))
+#gcms_corr_merged = pickle.load(open(os.path.join(path_dir,"gcms_corr.p"),"r"))
 
 def test_gcms_full():
     input_file = os.path.join(path_dir,"GCMS_raw.xlsx")
@@ -21,4 +21,3 @@ def test_gcms_full():
     print gcms_corr_merged
     assert pd.DataFrame.equals(merged_results_df, gcms_corr_merged)
 
-test_gcms_full()
