@@ -98,8 +98,12 @@ def background_correction(msms_df, list_of_replicates, isotope_dict=const.ISOTOP
                                                     frag_df[const.PARENT_NUM_LABELED_ATOMS].unique()[0],
                                                     frag_df[const.DAUGHTER_NUM_ATOMS].unique()[0],
                                                     frag_df[const.DAUGHTER_NUM_LABELED_ATOMS].unique()[0])
-                    background = background_subtraction(frag_df.loc[frag_df[const.SAMPLE_COL] == each_replicate, 
-                                                                    const.INTENSITY_COL].iloc[0], noise)
+                    try:
+                        intensity = frag_df.loc[frag_df[const.SAMPLE_COL] == each_replicate, 
+                                                                    const.INTENSITY_COL].iloc[0]
+                    except:
+                        intensity = 0
+                    background = background_subtraction(intensity , noise)
                     background_list.append(background)
                 background_value = max(background_list)
                 for each_replicate in replicate_group:
