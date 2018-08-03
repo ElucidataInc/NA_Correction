@@ -14,7 +14,7 @@ Corna package performs Natural Abundance Correction on the output intensity of m
 
 Run this command in your terminal to clone the repository:
 
-*git clone git://github.com/requests/requests.git*
+*git clone git://github.com/ElucidataInc/NA_Correction.git*
 
 **Environment Setup**
 
@@ -36,31 +36,35 @@ Run this command in your terminal to clone the repository:
 Name, Label, Formula, Sample_Name
 
 Below is a sample LCMS *raw_intensity* file-
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+Inside Demo/data_lcms/testfiles/nacorr_test_1.xlsx
 
 - LCMS/MS raw intensity file should have the following columns-
 Original Filename, Component Name, Mass Info, Area
 
 Below is a sample LCMS/MS *raw_intensity* file-
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+Inside Demo/data_msms/tca_data_mq/raw_intensity_file.csv
 
 LCMS/MS metadata file should have the following columns-
 Component Name, Unlabeled Fragment, Formula, Isotopic tracer, Parent Formula
 
 Below is a sample LCMS/MS *metadata* file-
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+Inside Demo/data_msms/tca_data_mq/metadata.xlsx
 
 
 **Running the Package-**
 
-1) Use the demo folder to run the demo.py script. The demo folder contains the
+1) Use the Demo folder to run the demo.py script. The demo folder contains the
    data foler with data files
 
 2) You can also write your own script by referring to the demo.py script and add
    your data files in the working directory
 
 3) Or Try this Ipython Script-
-   [I'm an inline-style link](https://www.google.com)
+   Inside Demo_ipython folder, find the ipython notbook for LCMS and LCMS/MS workflows.
+   Steps to run :-
+    1.) Copy the folder to local system.
+    2.) *pip install -r requirements.txt* to install dependencies.
+    3.) *jupyter notebook <notebook-name>* 
 
 ## **How to Contribute**
 
