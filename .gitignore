@@ -65,9 +65,7 @@ Thumbs.db
 #############
 *.cdat
 *.xml
-*.csv
 *.xls
-*.xlsx
 
 .cache/**
 dist/**
