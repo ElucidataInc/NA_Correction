@@ -46,6 +46,12 @@ def test_corr_matrix():
     with pytest.raises(KeyError):
         c_matrix = algo.make_correction_matrix(iso_tracer, {'H': 1}, na_dict, ['H'])
 
+def test():
+    na = {'C': [0.95, 0.05],'H':[0.98,0.01,0.01], 'S': [0.922297, 0.046832, 0.030872], 'O17':[0.95,0.03], 'O18':[0.95, 0, 0.02], 'N': [0.8, 0.2]}
+    iso_tracer = 'C'
+    c_matrix = algo.make_correction_matrix(iso_tracer, {'C': 2,'H': 1, 'O':3}, na_dict, ['O'])
+    print c_matrix
+
 def test_make_all_corr_matrices():
     iso_tracer = 'C'
     with pytest.raises(KeyError):
