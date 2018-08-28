@@ -192,6 +192,17 @@ def get_unique_values(df, column_name):
 
     return unique_val_list
 
+def replace_negatives_in_column(df, new_col_name,col_name):
+    """
+    This function replaces negative values in a column of dataframe to zero.
+    Args:
+        df: dataframe in which negative values has to be replaced.
+        new_col_name: Name of the column in which all values has to be positive or zero.
+        col_name: Name of the column for which negative values has to be replaced.
+    """
+    df[new_col_name] = df[col_name].clip(lower=0)
+    return df
+
 
 def check_if_all_elems_same_type(inputlist, classname):
     return all(isinstance(x, classname) for x in inputlist)
