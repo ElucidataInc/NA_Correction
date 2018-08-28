@@ -20,15 +20,15 @@ Run this command in your terminal to clone the repository:
 
 1) Create virtual environment:
 
-*virtualenv env-name*
+`virtualenv env-name`
 
 2) Activate virtual environment:
 
-*source env-name/bin/activate*
+`source env-name/bin/activate`
 
 3) Install requirements:
 
-*pip install -r requirements.txt*
+`pip install -r requirements.txt`
 
 ## **Getting Started**
 
@@ -53,7 +53,7 @@ Inside Demo/data_msms/tca_data_mq/metadata.xlsx
 
 **Running the Package-**
 
-1) Use the Demo folder to run the demgit confg --local o.py script. The demo folder contains the
+1) Use the Demo folder to run the demo.py script. The demo folder contains the
    data foler with data files
 
 2) You can also write your own script by referring to the demo.py script and add
@@ -75,20 +75,5 @@ Inside Demo/data_msms/tca_data_mq/metadata.xlsx
 3) Write a test which shows that the bug was fixed or that the feature works as expected.
 
 4) Send a pull request and bug the maintainer until it gets merged and published.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

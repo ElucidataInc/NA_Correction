@@ -1,5 +1,6 @@
 """This file is a demo user script for NA Correction of lcms maven input files (peak format)"""
 import os
+import pandas as pd
 import corna
 
 from corna import config
@@ -9,16 +10,12 @@ config.NAME_COL = 'Name'
 
 # path to directory where data files are present - give the path the file
 # as this path_dir = '/Users/sininagpal/OneDrive/Elucidata_Sini/NA_correction/Demo/data/'
-path_dir = os.path.join(os.path.dirname(__file__), 'data_agios')
+path_dir = os.path.join(os.path.dirname(__file__), 'data_lcms')
 
 
 # read maven data
 maven_data = corna.read_file(path_dir + '/testfiles/nacorr_test_1.xlsx')
 merge_mv_metdata = corna.convert_inputdata_to_stdfrom(maven_data)
-
-# For json input, use this funtion:
-#json_input = json.dumps(maven_data.to_dict())
-#maven_data = corna.convert_json_to_df(json_input)
 
 # read maven metadata file
 #maven_metadata = corna.read_file(path_dir + '/metadata.csv')
@@ -44,17 +41,13 @@ na_dict = corna.get_na_value_dict()
 #na_dict['H'][0] = 0.989
 
 # NA correction
-na_corr_dict = corna.na_correction(merge_mv_metdata, iso_tracers, eleme_corr, na_dict)
-na_corr_df = corna.convert_to_df_nacorr(na_corr_dict, parent=False, colname='NA corrected')
-
+na_corr_df, elem_corr_dict = corna.na_correction(merge_mv_metdata, iso_tracers, 50, na_dict, eleme_corr, autodetect=False )
 
 # Replace negative values by zero on NA corrected data - optional
-postprocessed_out = corna.replace_negatives(na_corr_dict)
-postprocessed_out_df = corna.convert_to_df(postprocessed_out, parent=False, colname='CorrIntensities-Replaced_negatives')
+postprocessed_out_df = corna.replace_negatives(na_corr_df)
 
 # calculate fractional enrichment on post processed data
-frac_enrichment = corna.fractional_enrichment(postprocessed_out)
-frac_enr_df = corna.convert_to_df(frac_enrichment, parent=False, colname='Frac Enrichment')
+frac_enr_df = corna.fractional_enrichment(postprocessed_out_df)
 
 # # combine results - dataframe with na correction column, frac enrichment column and post processed column
 df_list = [na_corr_df, frac_enr_df, postprocessed_out_df, merge_mv_metdata]
@@ -67,5 +60,5 @@ print merged_results_df
 # filtered_data = corna.filter_df(merged_results_df, col_rename)
 
 # save any dataframe at given path
-# save_dfs = corna.save_to_csv(merged_results_df, path_dir + 'results.csv')
+# merged_results_df.to_csv(path_dir + 'results.csv')
 
