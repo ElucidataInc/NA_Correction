@@ -1,4 +1,0 @@
-﻿corna==0.0.325
-datum==0.0.324
-jupyter 
-
