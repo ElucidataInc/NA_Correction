@@ -1,15 +1,7 @@
 import pandas as pd
 
 from corna import constants as const
-
-
-def replace_negatives(df):
-    """
-    This function replaces negative intensity values to zero.
-    """
-    df[const.NA_CORRECTED_WITH_ZERO] = df[const.NA_CORRECTED_COL].clip(lower=0)
-    return df
-
+from corna import helpers as hlp
 
 def calculate_pool_total(df):
     """
@@ -40,7 +32,7 @@ def fractional_enrichment(df):
     """
     final_df = pd.DataFrame()
     df = df.filter([const.SAMPLE_COL, const.NAME_COL, const.LABEL_COL, const.FORMULA_COL, const.NA_CORRECTED_COL])
-    df = replace_negatives(df)
+    df = hlp.replace_negatives_in_column(df,const.NA_CORRECTED_WITH_ZERO, const.NA_CORRECTED_COL)
 
     df = calculate_pool_total(df)
     df[const.FRACTIONAL_ENRICH] = df[const.NA_CORRECTED_WITH_ZERO]/df[const.POOL_TOTAL_COL]

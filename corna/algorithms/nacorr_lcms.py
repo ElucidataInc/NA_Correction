@@ -28,12 +28,13 @@ def eleme_corr_invalid_entry(iso_tracers, eleme_corr):
                                ') , invalid input in eleme_corr dictionary')
 
 
-def correct_df_for_multiplication(isotracers, lab_samp_df, corr_mats):
+def get_correct_df_by_multiplication(isotracers, preprocessed_df, corr_mats):
     """
     This function arranges the dataframe according to each isotope by grouping it on the basis of that isotope column 
     and then pass it as input to perform multiplication with correction matrix.
+    Finally NACorrected df is obtained.
     """
-    curr_df = lab_samp_df
+    curr_df = preprocessed_df
     if len(isotracers) == 1:
         curr_df = multiplying_df_with_matrix(isotracers[0], corr_mats[isotracers[0]], curr_df)
     else:
@@ -48,7 +49,7 @@ def correct_df_for_multiplication(isotracers, lab_samp_df, corr_mats):
                 L.append(corr_df)
                 keys.append(group_no)
             curr_df = pd.concat(L, keys=keys, names=index_cols)
-            curr_df.index = curr_df.index.reorder_levels(lab_samp_df.index.names)
+            curr_df.index = curr_df.index.reorder_levels(preprocessed_df.index.names)
 
     return curr_df
     
@@ -79,7 +80,11 @@ def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, el
     """
     This function performs na correcion for each metabolite one by one, adds required info
     back to the dataframe and then returns the NA corrected dataframe.
-
+    To perform NA correction, first formula dictionary of th metabolite is calculated
+    ,which is the number of each element in the compound.Then correction matrix is calculated 
+    based on the formula and isotracer. The values of Dataframe is then multiplied to the corresponding 
+    values of the dataframe to get nacorrected values.These nacorrected values are then appended in
+    the dataframe.
     Args:
         df: data frame of one metabolite which contains intensities which are to be corrected
         metab: metabolite name whose dataframe is passed
@@ -98,8 +103,8 @@ def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, el
     required_df, formula, formula_dict = parser.filter_required_col_and_get_formula_dict(df, metab,
                                                                      iso_tracers, required_col)
     corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, eleme_corr)
-    df_corr_C_N = correct_df_for_multiplication(iso_tracers, required_df, corr_mats)
-    info_df= parser.add_name_formula_label_col(df_corr_C_N, metab, formula[0], iso_tracers, eleme_corr)
+    corrected_df = get_correct_df_by_multiplication(iso_tracers, required_df, corr_mats)
+    info_df= parser.add_name_formula_label_col(corrected_df, metab, formula[0], iso_tracers, eleme_corr)
     final_df=final_df.append(info_df)
     return final_df
 
@@ -107,6 +112,11 @@ def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, el
 def na_correction(merged_df, iso_tracers, ppm_input_user, na_dict, eleme_corr,autodetect=False):
     """
     This function performs na correction on the input data frame for LCMS file. 
+    This function is a wrapper around perform_nacorrection_metab function. It preprocesses 
+    the input to get the desired input format of dataframe for each metabolite one by one and 
+    then pass the processed dataframe to the perform_nacorrection_metab to get nacorrected 
+    dataframe of a single metabolite. And keeps on appending this nacorrected dataframe to get 
+    the final joined dataframe. 
     Args:
         merged_df: data frame which contains intensities which are to be corrected
         iso_tracers: list of labeled elements. eg ['C13', 'N15']
@@ -117,7 +127,8 @@ def na_correction(merged_df, iso_tracers, ppm_input_user, na_dict, eleme_corr,au
         eleme_corr: if user selects autodetect=False, they can give a standard
                     dict of indistinguishable elements for correction.
                     eg - {'C13':['H','O']}
-        autodetect:It takes boolean value for auto detection. By default it is False.
+        autodetect:It takes boolean value for auto detection of Indistinguishable Isotopes. 
+                   By default it is False.
 
     Returns:
         joined: na corrected dataframe
