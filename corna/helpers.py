@@ -82,13 +82,13 @@ def get_isotope_mass(iso):
 def get_mol_weight(formula):
     """calculate molecular weight
     Returns:
-        mw (float): molecular weight
+        mol_weight (float): molecular weight
     """
     parsed_formula = parse_formula(formula)
-    mw = 0
+    mol_weight = 0
     for sym, qty in parsed_formula.iteritems():
-        mw = mw + get_atomic_weight(sym) * qty
-    return mw
+        mol_weight = mol_weight + get_atomic_weight(sym) * qty
+    return mol_weight
 
 
 def get_isotope_na(iso, isotope_dict=const.ISOTOPE_NA_MASS):
@@ -227,15 +227,9 @@ def merge_multiple_dfs(df_list):
     Returns:
         combined_dfs : concatenated list of dataframes into one dataframe
     """
-    combined_dfs = reduce(_merge_dfs, df_list)
+    combined_dfs = reduce(lambda df1,df2: pd.merge(df1, df2,on=[c.LABEL, c.SAMPLE,\
+                        c.NAME, c.FORMULA]), df_list)
     return combined_dfs
-
-
-def _merge_dfs(df1, df2):
-    """ merge two df's: df1 and df2 """
-    return pd.merge(df1, df2,
-                    on=[c.LABEL, c.SAMPLE,
-                        c.NAME, c.FORMULA])
 
 
 def get_isotope_na_value_dict(isotope_dict = const.ISOTOPE_NA_MASS):
