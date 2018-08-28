@@ -4,7 +4,7 @@ with open('requirements.txt') as fin:
   requirements = fin.read()
 
 def readme():
-    with open('README.rst') as f:
+    with open('README.md') as f:
         return f.read()
 
 setup(
