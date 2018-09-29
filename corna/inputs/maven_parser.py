@@ -330,7 +330,7 @@ def get_merge_df(maven_df, metadata_df):
 
 
 
-def read_maven_file(maven_file_path, maven_df, metadata_df):
+def read_maven_file(maven_df, metadata_df):
     """
     This function reads maven and metadata df. If validation does not 
     raise any error it returns mergedf with logs and iso-tracer data.
