@@ -94,8 +94,11 @@ def background_correction(msms_df, list_of_replicates, isotope_dict=const.ISOTOP
             for replicate_group in list_of_replicates:
                 background_list = []
                 for each_replicate in replicate_group:
-                    unlabel_intensity = unlabel_isotope_df.loc[unlabel_isotope_df[const.SAMPLE_COL] == each_replicate,
+                    try:
+                        unlabel_intensity = unlabel_isotope_df.loc[unlabel_isotope_df[const.SAMPLE_COL] == each_replicate,
                                                                          const.INTENSITY_COL].iloc[0]
+                    except:
+                        unlabel_intensity = 0
                     noise = background_noise(unlabel_intensity, na, frag_df[const.PARENT_NUM_ATOMS].unique()[0],
                                                     frag_df[const.PARENT_NUM_LABELED_ATOMS].unique()[0],
                                                     frag_df[const.DAUGHTER_NUM_ATOMS].unique()[0],
@@ -115,3 +118,31 @@ def background_correction(msms_df, list_of_replicates, isotope_dict=const.ISOTOP
     output_df[const.BACKGROUND_CORRECTED] = output_df[const.INTENSITY_COL] - output_df['replicate_value']
     output_df.drop('replicate_value', axis=1, inplace=True)
     return output_df
+
+
+msms_df = pd.read_csv('/home/priyanka/Downloads/raaaaaaaaaaaaisa.csv')
+print msms_df
+list_of_replicates = [[ 'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (10) | Sample Number=61 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (11) | Sample Number=67 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (12) | Sample Number=73 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (13) | Sample Number=79 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (8) | Sample Number=49 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (9) | Sample Number=55 '], [ 'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (2) | Sample Number=13 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (3) | Sample Number=19 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (4) | Sample Number=25 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (5) | Sample Number=31 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (6) | Sample Number=37 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc B6 0 1-20dil (7) | Sample Number=43 '], [ 'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (10) | Sample Number=133 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (11) | Sample Number=139 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (12) | Sample Number=145 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (13) | Sample Number=151 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (8) | Sample Number=121 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (9) | Sample Number=127 '], [ 'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (2) | Sample Number=85 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (3) | Sample Number=91 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (4) | Sample Number=97 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (5) | Sample Number=103 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (6) | Sample Number=109 ',
+       'Wisconsin_rbcplates_10aug18_11sep18-rbc PWK 0 1-20dil (7) | Sample Number=115 ']]
+final_df = background_correction(msms_df, list_of_replicates, isotope_dict=const.ISOTOPE_NA_MASS)
+
+final_df.to_csv('/home/priyanka/Downloads/raisa2.csv')
