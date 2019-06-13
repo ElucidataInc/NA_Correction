@@ -7,6 +7,7 @@ import pandas as pd
 import re
 
 import constants as const
+from formula import Formula
 from formulaschema import FormulaSchema
 from inputs.column_conventions import multiquant as c
 
@@ -28,6 +29,9 @@ VAL_COL = const.VAL_COL
 #     ISOTOPE_NA_MASS = isotope_dict
 #
 
+def get_global_isotope_dict():
+     return const.ISOTOPE_NA_MASS
+
 def parse_formula(formula):
     """Returns dict of number of atoms of particuar element in formula
        Ex: Formula- C2H5O7
@@ -43,11 +47,6 @@ def parse_formula(formula):
         else:
             D[x[0]]=int(x[1])
     return D
-
-    
-def get_global_isotope_dict():
-     return const.ISOTOPE_NA_MASS
-
 
 def get_atomic_weight(element):
     try:
@@ -70,11 +69,27 @@ def get_isotope_element(iso):
     except KeyError:
         raise KeyError('Check available isotope list', iso)
 
+def label_dict_to_key(label_dict):
+    key = ''
+    for ele, num in label_dict.iteritems():
+        key = key + '_' + ele + '_' + str(num)
+        key = key.strip('_')
+    return key
+
 
 def get_isotope_mass(iso):
     """ Get mass of isotope. """
     try:
         return const.ISOTOPE_NA_MASS['amu'][iso]
+    except KeyError:
+        raise KeyError('Check available isotope list', iso)
+
+def get_isotope_na(iso, isotope_dict=const.ISOTOPE_NA_MASS):
+    """
+    Get Natural Abundance value of a isotope.
+    """
+    try:
+        return isotope_dict['naValue'][iso]
     except KeyError:
         raise KeyError('Check available isotope list', iso)
 
@@ -89,16 +104,6 @@ def get_mol_weight(formula):
     for sym, qty in parsed_formula.iteritems():
         mol_weight = mol_weight + get_atomic_weight(sym) * qty
     return mol_weight
-
-
-def get_isotope_na(iso, isotope_dict=const.ISOTOPE_NA_MASS):
-    """
-    Get Natural Abundance value of a isotope.
-    """
-    try:
-        return isotope_dict['naValue'][iso]
-    except KeyError:
-        raise KeyError('Check available isotope list', iso)
 
 
 def get_isotope_natural(iso):
@@ -168,6 +173,12 @@ def merge_two_dfs(df1, df2, how='left', left_on='col1', right_on='col2'):
 
     return merged_df
 
+def get_key_from_single_value_dict(inputdict):
+    if len(inputdict) == 1:
+        key, value = inputdict.items()[0]
+    else:
+        raise OverflowError('Dictionary not single key, value pair')
+    return key
 
 def filter_df(df, colname_val_dict):
     """
@@ -179,6 +190,20 @@ def filter_df(df, colname_val_dict):
         filtered_df = df[(df[str(col_name)].isin(col_val_list))]
 
         return filtered_df
+
+
+def create_dict_from_isotope_label_list(isonumlist):
+    label_dict = collections.OrderedDict()
+
+    for i in xrange(0, len(isonumlist), 2):
+        try:
+            get_isotope_element(isonumlist[i])
+            label_dict.update({isonumlist[i]: int(isonumlist[i + 1])})
+        except KeyError:
+            raise KeyError('The key must be an isotope')
+        except ValueError:
+            raise ValueError('The number of labels should be integer')
+    return label_dict
 
 
 def get_unique_values(df, column_name):
@@ -200,8 +225,14 @@ def replace_negatives_in_column(df, new_col_name,col_name):
         new_col_name: Name of the column in which all values has to be positive or zero.
         col_name: Name of the column for which negative values has to be replaced.
     """
+    print(new_col_name, col_name)
     df[new_col_name] = df[col_name].clip(lower=0)
     return df
+
+def get_formula(formula):
+    """Parsing formula to store as an element -> number of atoms dictionary"""
+    parsed_formula = Formula(formula).parse_formula_to_elem_numatoms()
+    return parsed_formula
 
 
 def check_if_all_elems_same_type(inputlist, classname):
