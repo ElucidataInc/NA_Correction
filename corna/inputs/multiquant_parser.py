@@ -17,6 +17,8 @@ def add_mass_and_no_of_atoms_info_frm_label(df):
     total no of atoms parent and daughter and isotracer column to the dataframe.
     """
     msms_df = get_parent_daughter_iso_mass_col_and_isotracer_from_label(df)
+    print("add mass_no_of_atoms_info_from_label")
+    print(msms_df.head())
     isotracer= msms_df[multiquant.ISOTRACER].unique()
     iso_elem= hlp.get_isotope_element(isotracer[0])
     input_df=pd.DataFrame()
