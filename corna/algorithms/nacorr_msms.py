@@ -39,7 +39,9 @@ def na_correction_mimosa(msms_df, isBackground, isotope_dict=const.ISOTOPE_NA_MA
     if isBackground:
         final_df = msms_df
         isotracer = msms_df[multiquant.ISOTRACER].unique()
+        print(isotracer)
         intensity_col = const.BACKGROUND_WITH_ZERO
+        #print(final_df.head())
     else:        
         final_df, isotracer= multiquant_parser.add_mass_and_no_of_atoms_info_frm_label(msms_df)
         intensity_col= const.INTENSITY_COL
@@ -49,6 +51,20 @@ def na_correction_mimosa(msms_df, isBackground, isotope_dict=const.ISOTOPE_NA_MA
     metab_dict={}
 
     na= get_isotope_na(isotracer[0], isotope_dict)
+    print(na)
+
+    #p = parent_frag_m.number_of_atoms(iso_elem)
+    #d = daughter_frag_n.number_of_atoms(iso_elem)
+    #m = parent_frag_m.get_num_labeled_atoms_isotope(isotope)
+    #n = daughter_frag_n.get_num_labeled_atoms_isotope(isotope)
+
+    #corrected_intensity = intensity_m_n * (1 + na * (p - m)) - intensity_m_1_n * na * ((p - d) - (m - n - 1)) -\
+    #    intensity_m_1_n_1 * na * (d - (n - 1))
+
+    #final_df['A']=(1 + na * (p - m))
+    #final_df['B']= na * ((p - d) - (m - n) -1) 
+    #final_df['C']=  na * (d - n) - 1))
+                        
 
     final_df['A']=(1 + na * (final_df[const.PARENT_NUM_ATOMS] - final_df[const.PARENT_NUM_LABELED_ATOMS]))
     final_df['B']= na * ((final_df[const.PARENT_NUM_ATOMS] - final_df[const.DAUGHTER_NUM_ATOMS]) -\
@@ -91,6 +107,13 @@ def na_correction_mimosa(msms_df, isBackground, isotope_dict=const.ISOTOPE_NA_MA
             except KeyError:
                 intensity_m_1_n_1= 0
         
+    #corrected_intensity = intensity_m_n * (1 + na * (p - m)) - intensity_m_1_n * na * ((p - d) - (m - n - 1)) -\
+    #    intensity_m_1_n_1 * na * (d - (n - 1))
+
+    #final_df['A']=(1 + na * (p - m))
+    #final_df['B']= na * ((p - d) - (m - n) -1) 
+    #final_df['C']=  na * (d - n) - 1))
+
             corrected= intensity_m_n * row['A']  - intensity_m_1_n * row['B'] -\
                                                 intensity_m_1_n_1 * row['C']
             metab_df.set_value(index=index, col=const.NA_CORRECTED_COL, value=corrected)
