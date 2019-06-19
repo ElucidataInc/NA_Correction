@@ -13,7 +13,7 @@ from collections import namedtuple
 import os
 import warnings
 
-from datum import algorithms as dat_alg
+# from datum import algorithms as dat_alg
 import pandas as pd
 
 from .column_conventions import multiquant
@@ -302,24 +302,15 @@ def merge_mq_metadata(mq_df, metdata, sample_metdata):
 
 def mq_df_to_fragmentdict(merged_df, intensity_col=INTENSITY_COL):
     frag_key_df = frag_key(merged_df)
-    print("frag_key dataframe")
-    #print(frag_key_df.head())
     std_model_mq = standard_model(frag_key_df, intensity_col)
-    #print(std_model_mq)
     metabolite_frag_dict = {}
     for frag_name, label_dict in std_model_mq.iteritems():
-        #print(frag_name, label_dict)
         curr_frag_name = Multiquantkey(frag_name.name, frag_name.formula,
                                        frag_name.parent, frag_name.parent_formula)
-        #print(curr_frag_name)
         if metabolite_frag_dict.has_key(frag_name.parent):
-            print("it has key")
             metabolite_frag_dict[frag_name.parent].update(bulk_insert_data_to_fragment(curr_frag_name,
                                                                                        label_dict, mass=True))
-            #print("metabolite frag dict printed")
-            #rint(metabolite_frag_dict)
         else:
-            print("no key")
             metabolite_frag_dict[frag_name.parent] = bulk_insert_data_to_fragment(curr_frag_name,
                                                                                   label_dict, mass=True)
     return metabolite_frag_dict
