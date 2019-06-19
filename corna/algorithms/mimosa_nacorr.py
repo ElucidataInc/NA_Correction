@@ -37,8 +37,6 @@ def na_correction_mimosa_by_fragment(fragments_dict, isotope_dict, decimals):
         parent_frag_m, daughter_frag_n = value.frag
         isotope = parent_frag_m.isotracer
 
-        print('printing isotope and isotope dict')
-        print(isotope, isotope_dict)
         na = helpers.get_isotope_na(isotope, isotope_dict)
         corrected_data = {}
         for sample_name, intensity_m_n in value.data.iteritems():
@@ -70,17 +68,9 @@ def na_correction_mimosa_by_fragment(fragments_dict, isotope_dict, decimals):
 
 #na_corrected = na_correction_mimosa(bg_corrected_df, True, const.ISOTOPE_NA_MASS, msms_df)
 def na_correction_mimosa(bg_corrected_df, msms_df, isotope_dict=ISOTOPE_NA_MASS, decimals=2):
-    print("isotope dictionary")
-    print(isotope_dict)
-    print("print the merged dataframe")
     merged_df = helpers.merge_multiple_dfs([bg_corrected_df, msms_df])
     metabolite_frag_dict = multiquant_parser.mq_df_to_fragmentdict(merged_df, 'Background Corrected')
-    #print("printing metabolite frag dict")
-    #print(metabolite_frag_dict)
-    #print("printing metabolite frag dict")
     na_corr_dict = {}
     for metabolite, fragments_dict in metabolite_frag_dict.iteritems():
-        print("iterating over metabolite frag dictionary")
-        #print(metabolite, fragments_dict)
         na_corr_dict[metabolite] = na_correction_mimosa_by_fragment(fragments_dict, isotope_dict, decimals)
     return na_corr_dict
