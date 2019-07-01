@@ -52,28 +52,28 @@ def pool_total_MSMS(na_corr_df, colname):
     return pool_total_df
 
 
-# def fractional_enrichment(df):
-#     """
-#     This function calculates fractional enrichment
-#     for all the metabolites in the input data file
+def fractional_enrichment(df):
+    """
+    This function calculates fractional enrichment
+    for all the metabolites in the input data file
 
-#     Args:
-#         df: dataframe for which fractional enrichment has to be calculated.
-#     Returns:
-#         final_df: dataframe which consists of the calculated values.
-#     """
-#     final_df = pd.DataFrame()
-#     df = df.filter([const.SAMPLE_COL, const.NAME_COL, const.LABEL_COL, const.FORMULA_COL, const.NA_CORRECTED_COL])
-#     df = hlp.replace_negatives_in_column(df,const.NA_CORRECTED_WITH_ZERO, const.NA_CORRECTED_COL)
+    Args:
+        df: dataframe for which fractional enrichment has to be calculated.
+    Returns:
+        final_df: dataframe which consists of the calculated values.
+    """
+    final_df = pd.DataFrame()
+    df = df.filter([const.SAMPLE_COL, const.NAME_COL, const.LABEL_COL, const.FORMULA_COL, const.NA_CORRECTED_COL])
+    df = hlp.replace_negatives_in_column(df,const.NA_CORRECTED_WITH_ZERO, const.NA_CORRECTED_COL)
 
-#     df = calculate_pool_total(df)
-#     df[const.FRACTIONAL_ENRICH] = df[const.NA_CORRECTED_WITH_ZERO]/df[const.POOL_TOTAL_COL]
-#     final_df = df.fillna(0)
-#     if const.NA_CORRECTED_COL in final_df.columns:
-#         final_df.drop([const.NA_CORRECTED_COL], axis=1, inplace=True)
-#     if const.NA_CORRECTED_WITH_ZERO in final_df.columns:
-#         final_df.drop([const.NA_CORRECTED_WITH_ZERO], axis=1, inplace=True)
-#     return final_df
+    df = calculate_pool_total(df)
+    df[const.FRACTIONAL_ENRICH] = df[const.NA_CORRECTED_WITH_ZERO]/df[const.POOL_TOTAL_COL]
+    final_df = df.fillna(0)
+    if const.NA_CORRECTED_COL in final_df.columns:
+        final_df.drop([const.NA_CORRECTED_COL], axis=1, inplace=True)
+    if const.NA_CORRECTED_WITH_ZERO in final_df.columns:
+        final_df.drop([const.NA_CORRECTED_WITH_ZERO], axis=1, inplace=True)
+    return final_df
 
 
 def zero_if_negative(num):
@@ -144,27 +144,6 @@ def enrichment(fragments_dict, decimals):
             value.frag, fractional_data, value.unlabeled, value.name)
  
     return fragments_fractional
-
-def fractional_enrichment(post_processed_out, decimals=4):
-    """ 
-    This function is a wrapper over enrichment function which calculates fractional enrichment
-    for all the metabolites in the input data file
-
-    Args:
-        post_processed_out : Dictionary of the form, {'Metabname_label':
-        [Fragment object, {'sample_name': corrected_intensity}, label/unlabe bool, metabname]
-        decimals : number of decimals to keep
-
-    Returns:
-        frac_enrichment_dict : fragment dictionary model of fractional enrichment values for all
-                               metabolites
-    """
-    frac_enrichment_dict = {}
-
-    for metabolite, fragment_dict in post_processed_out.iteritems():
-        frac_enrichment_dict[metabolite] = enrichment(fragment_dict, decimals)
-
-    return frac_enrichment_dict
 
 
 def replace_vals(sample_int_dict):
