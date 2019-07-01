@@ -38,7 +38,6 @@ def add_indistinguishable_element(M,n,pvec):
     for i in range(M.shape[1]):
         for j in range(n):
             M_new[:, i] = np.convolve(M_new[:, i], pvec)[:M_new.shape[0]]
-    #print M_new
     return M_new
 
 def make_correction_matrix(trac_atom, formuladict, na_dict, indist_elems):
