@@ -51,12 +51,10 @@ def pool_total_MSMS(na_corr_df, colname):
     pool_total_df = pool_total_df.apply(lambda x: x[x[colname] >= 0][colname].sum())
     return pool_total_df
 
-
 def fractional_enrichment(df):
     """
     This function calculates fractional enrichment
     for all the metabolites in the input data file
-
     Args:
         df: dataframe for which fractional enrichment has to be calculated.
     Returns:
