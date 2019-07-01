@@ -14,7 +14,6 @@ import corna.helpers as hlp
 
 from corna import summary as sm
 from ..constants import INTENSITY_COL
-from corna.inputs import validation
 from ..data_model import standard_model
 from ..isotopomer import bulk_insert_data_to_fragment
 
