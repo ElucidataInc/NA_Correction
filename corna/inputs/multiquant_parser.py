@@ -13,7 +13,6 @@ from collections import namedtuple
 import os
 import warnings
 
-# from datum import algorithms as dat_alg
 import pandas as pd
 
 from .column_conventions import multiquant
