@@ -11,7 +11,7 @@ import matrix_calc as algo
 import corna.inputs.maven_parser as parser
 from corna.autodetect_isotopes import get_element_correction_dict
 from corna import constants as cons
-from corna.helpers import get_isotope_element, first_sub_second, parse_formula, chemformula_schema
+from corna.helpers import get_isotope_element, first_sub_second, parse_formula, chemformula_schema, get_na_value_dict
 
 def eleme_corr_invalid_entry(iso_tracers, eleme_corr):
     """
@@ -72,7 +72,7 @@ def multiplying_df_with_matrix(isotracer, corr_mat_for_isotracer, curr_df):
     num_rows, num_cols = corr_mat_for_isotracer.shape
     curr_df = curr_df.reindex(np.arange(num_cols)).fillna(0)
     corr_data = np.matmul(corr_mat_for_isotracer, curr_df.values)
-    corr_df = pd.DataFrame(index=pd.index.np.arange(num_rows),columns=curr_df.columns, data=corr_data)
+    corr_df = pd.DataFrame(data=corr_data, index=pd.index.np.arange(num_rows),columns=curr_df.columns)
     corr_df.index.name = isotracer
     return corr_df
 
@@ -109,7 +109,7 @@ def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, el
     return final_df
 
 
-def na_correction(merged_df, iso_tracers, ppm_input_user, na_dict, eleme_corr,autodetect=False):
+def na_correction(merged_df, iso_tracers, ppm_input_user, eleme_corr, na_dict=get_na_value_dict(), autodetect=False):
     """
     This function performs na correction on the input data frame for LCMS file. 
     This function is a wrapper around perform_nacorrection_metab function. It preprocesses 
