@@ -87,8 +87,9 @@ na_corr_df.to_csv('nacorrected.csv')
 # postprocessed_out_df.to_csv("postprocessed_out.csv")
 
 # calculate fractional enrichment on post processed data
-frac_enrichment = fractional_enrichment(na_corrected)
-frac_enr_df = convert_to_df(frac_enrichment, True, colname='Frac Enrichment')
+#frac_enrichment = fractional_enrichment(na_corrected)
+#frac_enr_df = convert_to_df(frac_enrichment, True, colname='Frac Enrichment')
+frac_enr_df = fractional_enrichment(na_corr_df)
 frac_enr_df = merge_multiple_dfs([msms_df, bg_corrected_df, na_corr_df, frac_enr_df])
 frac_enr_df.to_csv("frac_enr.csv")
 
