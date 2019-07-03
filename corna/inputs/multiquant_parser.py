@@ -9,6 +9,26 @@ from corna.inputs.column_conventions import multiquant
 from corna import constants as const
 import corna.helpers as hlp
 
+from collections import namedtuple
+import os
+import warnings
+
+from datum import algorithms as dat_alg
+import pandas as pd
+
+from .column_conventions import multiquant
+from corna import constants
+from corna import summary as sm
+from ..constants import INTENSITY_COL
+from corna.inputs import validation
+from ..data_model import standard_model
+from ..helpers import read_file, get_unique_values, check_column_headers
+from ..isotopomer import bulk_insert_data_to_fragment
+
+Multiquantkey = namedtuple('MultiquantKey', 'name formula parent parent_formula')
+validated_raw_tuple = namedtuple('validated_raw_mq', 'df logs')
+validated_metadata_tuple = namedtuple('validated_metadata_mq', 'df logs')
+metadata_mq_tuple = namedtuple('metadata_mq', 'df logs')
 
 def add_mass_and_no_of_atoms_info_frm_label(df):
     """
@@ -168,6 +188,9 @@ def merge_samples(merged_df, sample_metadata):
     remove_stds.rename(columns={"Area": multiquant.INTENSITY}, inplace=True)
     return remove_stds
 
+def get_background_samples(sample_metadata, sample_name, background_sample):
+    sample_background = sample_metadata.set_index(sample_name).to_dict()
+    return sample_background[background_sample]
 
 def mq_merge_dfs(input_data, metadata, sample_metadata):
     """
@@ -226,6 +249,22 @@ def get_replicates(sample_metadata, sample_name, cohort_name, background_sample)
         replicate_groups.append(hlp.get_unique_values(newdf, background_sample))
     return replicate_groups
 
+def frag_key(df):
+    """
+    This function creates a fragment key column in merged data based on parent information.
+    """
+
+    def _extract_keys(x):
+        return Multiquantkey(x[multiquant.MQ_FRAGMENT],
+                             x[multiquant.FORMULA],
+                             x[multiquant.NAME],
+                             x[multiquant.PARENT_FORMULA])
+
+    try:
+        df[multiquant.FRAG] = df.apply(_extract_keys, axis=1)
+    except KeyError:
+        raise KeyError('Missing columns in data')
+    return df
 
 def merge_mq_metadata(mq_df, metdata, sample_metdata):
     """
@@ -256,4 +295,31 @@ def merge_mq_metadata(mq_df, metdata, sample_metdata):
         sample_metdata = sample_metdata[sample_metdata[multiquant.MQ_SAMPLE_NAME].isin(merged_data[multiquant.SAMPLE])]
         list_of_replicates = get_replicates(
             sample_metdata, multiquant.MQ_SAMPLE_NAME, multiquant.MQ_COHORT_NAME, multiquant.BACKGROUND)
-    return merged_data, list_of_replicates
+        sample_background = get_background_samples(
+            sample_metdata, multiquant.MQ_SAMPLE_NAME, multiquant.BACKGROUND)
+    return merged_data, list_of_replicates, sample_background
+
+
+def mq_df_to_fragmentdict(merged_df, intensity_col=INTENSITY_COL):
+    frag_key_df = frag_key(merged_df)
+    print("frag_key dataframe")
+    #print(frag_key_df.head())
+    std_model_mq = standard_model(frag_key_df, intensity_col)
+    #print(std_model_mq)
+    metabolite_frag_dict = {}
+    for frag_name, label_dict in std_model_mq.iteritems():
+        #print(frag_name, label_dict)
+        curr_frag_name = Multiquantkey(frag_name.name, frag_name.formula,
+                                       frag_name.parent, frag_name.parent_formula)
+        #print(curr_frag_name)
+        if metabolite_frag_dict.has_key(frag_name.parent):
+            print("it has key")
+            metabolite_frag_dict[frag_name.parent].update(bulk_insert_data_to_fragment(curr_frag_name,
+                                                                                       label_dict, mass=True))
+            #print("metabolite frag dict printed")
+            #rint(metabolite_frag_dict)
+        else:
+            print("no key")
+            metabolite_frag_dict[frag_name.parent] = bulk_insert_data_to_fragment(curr_frag_name,
+                                                                                  label_dict, mass=True)
+    return metabolite_frag_dict

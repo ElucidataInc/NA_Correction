@@ -2,12 +2,15 @@ import pandas as pd
 import math
 import numpy as np
 from scipy.misc import comb
+from functools import partial
 
+from corna import helpers
+from corna import data_model
 from corna.helpers import get_isotope_na
-from corna import constants as const
+from corna import constants
+from corna.isotopomer import bulk_insert_data_to_fragment, Infopacket
 from corna.inputs.column_conventions import multiquant
 from corna.inputs import multiquant_parser
-
 
 def background_noise(unlabel_intensity, na, parent_atoms, parent_label,
                                              daughter_atoms, daughter_label):
@@ -60,61 +63,88 @@ def background_subtraction(input_intensity, noise):
         return 0
 
 
-def background_correction(msms_df, list_of_replicates, isotope_dict=const.ISOTOPE_NA_MASS):
-    """
-    This function corrects intensity value errors present due to background noise.
-    
-    Parameters
-    ----------
-    msms_df:
-         Dataframe which contains intensities to be corrected.
-    list_of_replicates:
-         List consisting all the sample group for each cohort.
-    isotope_dict:
-         Dictionary containing the natural abundance values of each element and its isotope.
-         Eg: {'C12': 0.9889, 'C13':0.0111, 'N14':0.9964,'N15':0.0036}
-    Returns
-    -------
-        output_df: Background corrected dataframe
-    """
-    final_df, isotracer = multiquant_parser.add_mass_and_no_of_atoms_info_frm_label(msms_df)
-    output_df = pd.DataFrame()
+def background(list_of_replicates, input_fragment_value, unlabeled_fragment_value, isotope_dict):
+    parent_frag, daughter_frag = input_fragment_value.frag
+    iso_elem = helpers.get_isotope_element(parent_frag.isotracer)
+    parent_label = parent_frag.get_num_labeled_atoms_isotope(
+        parent_frag.isotracer)
+    parent_atoms = parent_frag.number_of_atoms(iso_elem)
+    na = helpers.get_isotope_na(parent_frag.isotracer, isotope_dict)
+    daughter_atoms = daughter_frag.number_of_atoms(iso_elem)
+    daughter_label = daughter_frag.get_num_labeled_atoms_isotope(
+        parent_frag.isotracer)
+    replicate_value = {}
+    for replicate_group in list_of_replicates:
 
-    na = get_isotope_na(isotracer[0], isotope_dict)
+        background_list = []
+        for each_replicate in replicate_group:
+            noise = background_noise(unlabeled_fragment_value.data[each_replicate], na, parent_atoms,
+                                     parent_label, daughter_atoms, daughter_label)
+            background = background_subtraction(input_fragment_value.data[each_replicate], noise)
+            background_list.append(background)
+        background_value = max(background_list)
+        for each_replicate in replicate_group:
+            replicate_value[each_replicate] = background_value
+    return replicate_value
 
-    final_df[const.UNLABELED] = 'False'
-    final_df.loc[final_df[const.PARENT_NUM_LABELED_ATOMS] == 0, const.UNLABELED] = 'True'
 
-    for metab in final_df.Name.unique():
-        metab_df = final_df[final_df[const.NAME_COL] == metab]
-        unlabel_isotope_df = metab_df[metab_df[const.UNLABELED] == 'True']
+def bacground_correction(replicates, sample_background, sample_data, decimals):
+    corrected_sample_data = {}
+    for key, value in sample_data.iteritems():
+        background_value = replicates[sample_background[key]]
+        new_value = np.around(value - background_value, decimals)
+        corrected_sample_data[key] = new_value
+    return corrected_sample_data
 
-        for frag in metab_df[multiquant.MQ_FRAGMENT].unique():
-            frag_df = metab_df[metab_df[multiquant.MQ_FRAGMENT] == frag]
-            for replicate_group in list_of_replicates:
-                background_list = []
-                for each_replicate in replicate_group:
-                    try:
-                        unlabel_intensity = unlabel_isotope_df.loc[unlabel_isotope_df[const.SAMPLE_COL] == each_replicate,
-                                                                         const.INTENSITY_COL].iloc[0]
-                    except:
-                        unlabel_intensity = 0
-                    noise = background_noise(unlabel_intensity, na, frag_df[const.PARENT_NUM_ATOMS].unique()[0],
-                                                    frag_df[const.PARENT_NUM_LABELED_ATOMS].unique()[0],
-                                                    frag_df[const.DAUGHTER_NUM_ATOMS].unique()[0],
-                                                    frag_df[const.DAUGHTER_NUM_LABELED_ATOMS].unique()[0])
-                    try:
-                        intensity = frag_df.loc[frag_df[const.SAMPLE_COL] == each_replicate, 
-                                                                    const.INTENSITY_COL].iloc[0]
-                    except:
-                        intensity = 0
-                    background = background_subtraction(intensity , noise)
-                    background_list.append(background)
-                background_value = max(background_list)
-                for each_replicate in replicate_group:
-                    frag_df.loc[frag_df[multiquant.BACKGROUND] == each_replicate, 'replicate_value'] = background_value
-            output_df= output_df.append(frag_df)
 
-    output_df[const.BACKGROUND_CORRECTED] = output_df[const.INTENSITY_COL] - output_df['replicate_value']
-    output_df.drop('replicate_value', axis=1, inplace=True)
-    return output_df
+def bulk_background_correction(fragment_dict, list_of_replicates, sample_background, isotope_dict, decimals):
+    input_fragments = []
+    unlabeled_fragment = []
+    corrected_fragments_dict = {}
+    for key, value in fragment_dict.iteritems():
+        if value.unlabeled:
+            unlabeled_fragment.append((key, value))
+            input_fragments.append((key, value))
+        else:
+            input_fragments.append((key, value))
+    try:
+        assert len(unlabeled_fragment) == 1
+    except AssertionError:
+        raise AssertionError('The input should contain atleast and only one unlabeled fragment data'
+                             'Please check metadata or raw data files')
+    for input_fragment in input_fragments:
+        replicate_value = background(list_of_replicates, input_fragment[
+            1], unlabeled_fragment[0][1], isotope_dict)
+        #corrected_sample_data = bacground_correction(
+        #    replicate_value, sample_background, input_fragment[1].data, decimals)
+        sample_data = input_fragment[1].data
+        corrected_sample_data = {}
+        for key, value in sample_data.iteritems():
+            background_value = replicate_value[sample_background[key]]
+            new_value = np.around(value - background_value, decimals)
+            corrected_sample_data[key] = new_value
+
+            corrected_fragments_dict[input_fragment[0]] = Infopacket(input_fragment[1].frag, corrected_sample_data,
+                                                       input_fragment[1].unlabeled, input_fragment[1].name)
+    return corrected_fragments_dict
+
+
+# def background_correction(metabolite_frag_dict, list_of_replicates, sample_background, isotope_dict=constants.ISOTOPE_NA_MASS, decimals=0):
+#     preprocessed_output_dict = {}
+#     for metabolite, fragments_dict in metabolite_frag_dict.iteritems():
+#         preprocessed_output_dict[metabolite] = bulk_background_correction(fragments_dict,
+#                                                                           list_of_replicates,
+#                                                                           sample_background, isotope_dict, decimals)
+
+#     return preprocessed_output_dict
+
+def background_correction(msms_df, list_of_replicates, sample_background, isotope_dict=constants.ISOTOPE_NA_MASS, decimals=0):
+    metabolite_frag_dict = multiquant_parser.mq_df_to_fragmentdict(msms_df)
+    preprocessed_output_dict = {}
+    for metabolite, fragments_dict in metabolite_frag_dict.iteritems():
+        preprocessed_output_dict[metabolite] = bulk_background_correction(fragments_dict,
+                                                                          list_of_replicates,
+                                                                          sample_background, isotope_dict, decimals)
+
+    return preprocessed_output_dict
+

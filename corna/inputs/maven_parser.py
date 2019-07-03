@@ -1,9 +1,11 @@
 import pandas as pd
+from collections import namedtuple
 
 from corna import helpers as hlp
 from column_conventions import maven as maven_constants
 import corna.constants as cons
 
+MavenKey = namedtuple('MavenKey', 'name formula')
 
 def get_isotope_columns_frm_label_col(df, iso_tracers):
     """
