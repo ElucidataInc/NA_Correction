@@ -52,15 +52,112 @@ def pool_total_MSMS(na_corr_df, colname):
     return pool_total_df
 
 
-def fractional_enrichment(df):
+# def fractional_enrichment(df):
+#     """
+#     This function calculates fractional enrichment
+#     for all the metabolites in the input data file
+
+#     Args:
+#         df: dataframe for which fractional enrichment has to be calculated.
+#     Returns:
+#         final_df: dataframe which consists of the calculated values.
+#     """
+#     final_df = pd.DataFrame()
+#     df = df.filter([const.SAMPLE_COL, const.NAME_COL, const.LABEL_COL, const.FORMULA_COL, const.NA_CORRECTED_COL])
+#     df = hlp.replace_negatives_in_column(df,const.NA_CORRECTED_WITH_ZERO, const.NA_CORRECTED_COL)
+
+#     df = calculate_pool_total(df)
+#     df[const.FRACTIONAL_ENRICH] = df[const.NA_CORRECTED_WITH_ZERO]/df[const.POOL_TOTAL_COL]
+#     final_df = df.fillna(0)
+#     if const.NA_CORRECTED_COL in final_df.columns:
+#         final_df.drop([const.NA_CORRECTED_COL], axis=1, inplace=True)
+#     if const.NA_CORRECTED_WITH_ZERO in final_df.columns:
+#         final_df.drop([const.NA_CORRECTED_WITH_ZERO], axis=1, inplace=True)
+#     return final_df
+
+
+def zero_if_negative(num):
+     """
+     This function replaces negative numbers by zero_if_negative
+
+     Args:
+         num : any int value
+
+     Return:
+         1. zero if num is negative
+         2. number itself if num is non negative
+     """
+     return 0 if num < 0 else num
+
+def sum_intensities(fragments_dict):
     """
-    This function calculates fractional enrichment
+    This function calculates the sum of corrected intensities for a given sample
+
+    Args:
+        fragments_dict : dictionary of the form, example : {'Aceticacid_C13_1': [C2H4O2,
+                         {'sample_1': array([ 0.0164])}, False, 'Aceticacid']
+    Returns:
+        sum_dict :  dictionary of sum of all corrected intensities for each sample
+    """
+    all_frag_info = fragments_dict.values()
+
+    sample_names = []
+    for frag in all_frag_info:
+        sample_names.extend(frag.data.keys())
+    sample_names = list(set(sample_names))
+
+    sum_dict = {}
+
+    for sample_name in sample_names:
+        sum_dict[sample_name] = sum(value.data.get(sample_name,0) for value in all_frag_info)
+
+    return sum_dict
+
+def enrichment(fragments_dict, decimals):
+    """
+    This function calculates the fractional enrichment for each label
+    Fractional enrichment[sample1] = Corrected Intensity/ Sum of corrected intensities of all labels
+ 
+     Args:
+         fragments_dict : dictionary of the form, example : {'Aceticacid_C13_1': [C2H4O2,
+                          {'sample_1': array([ 0.0164])}, False, 'Aceticacid']
+ 
+         decimals : number of significant digits to keep
+
+     Returns:
+         fragments_fractional : fragment dictionary model of fractional enrichment values
+     """
+    fragments_fractional = {}
+    sum_dict = sum_intensities(fragments_dict)
+ 
+    for key, value in fragments_dict.iteritems():
+        fractional_data = {}
+        for sample_name, intensity in value.data.iteritems():
+            if not sum_dict[sample_name] == 0:
+                fractional_data[sample_name] = np.around(
+                     intensity / sum_dict[sample_name], decimals)
+            else:
+                fractional_data[sample_name] = 0
+                warnings.warn("{} {} {} {}".format('sum of labels is zero for sample ', sample_name.encode('utf-8'),
+                                                    ' of ', (value.name).encode('utf-8')))
+        fragments_fractional[key] = Infopacket(
+            value.frag, fractional_data, value.unlabeled, value.name)
+ 
+    return fragments_fractional
+
+def fractional_enrichment(post_processed_out, decimals=4):
+    """ 
+    This function is a wrapper over enrichment function which calculates fractional enrichment
     for all the metabolites in the input data file
 
     Args:
-        df: dataframe for which fractional enrichment has to be calculated.
+        post_processed_out : Dictionary of the form, {'Metabname_label':
+        [Fragment object, {'sample_name': corrected_intensity}, label/unlabe bool, metabname]
+        decimals : number of decimals to keep
+
     Returns:
-        final_df: dataframe which consists of the calculated values.
+        frac_enrichment_dict : fragment dictionary model of fractional enrichment values for all
+                               metabolites
     """
     final_df = pd.DataFrame()
     df = df.filter([const.SAMPLE_COL, const.NAME_COL, const.LABEL_COL, const.FORMULA_COL, const.NA_CORRECTED_COL])

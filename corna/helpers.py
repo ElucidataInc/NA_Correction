@@ -225,6 +225,7 @@ def replace_negatives_in_column(df, new_col_name,col_name):
         new_col_name: Name of the column in which all values has to be positive or zero.
         col_name: Name of the column for which negative values has to be replaced.
     """
+    print(new_col_name, col_name)
     df[new_col_name] = df[col_name].clip(lower=0)
     return df
 
