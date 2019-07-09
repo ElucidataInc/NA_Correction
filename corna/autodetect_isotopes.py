@@ -1,8 +1,17 @@
+import numpy as np
+
 import constants as cs
 import helpers as hl
 
 
-def get_ppm_required(formula, delta_m):
+def get_intrument_ppm_from_res(res, res_mw, m, instrument):
+    if instrument=='orbitrap':
+        inst_ppm = np.multiply(10**6,(np.divide(np.multiply(1.66, np.power(m,0.5)), np.multiply(res, np.power(res_mw, 0.5)))))
+    elif instrument=='ft-icr':
+        inst_ppm = np.multiply(10**6,(np.divide(np.multiply(1.66, m), np.multiply(res, res_mw)))) 
+    return inst_ppm
+
+def get_ppm_required(metabolite_mass, delta_m):
     """This function calculates the ppm required to
     distinguish between the two elements in a
     metabolite.
@@ -13,10 +22,7 @@ def get_ppm_required(formula, delta_m):
 
     Returns:
         required_ppm: ppm required to distinguish two elements.
-    """
-
-    
-    metabolite_mass = hl.get_mol_weight(formula)
+    """    
     required_ppm = 1000000 * (delta_m / metabolite_mass)
     return required_ppm
 
@@ -80,7 +86,7 @@ def ppm_validation(ppm_user_input, required_ppm, formula, ele):
        return True
 
        
-def get_indistinguishable_ele(isotracer, formula, ppm_user_input,element):
+def get_indistinguishable_ele(isotracer, formula, element, res, res_mw, instrument):
     """This function returns element which is indistinguishable for
     a particular isotracer
 
@@ -93,10 +99,13 @@ def get_indistinguishable_ele(isotracer, formula, ppm_user_input,element):
     Returns:
         element which is indistinguishable
     """
+    metabolite_mass = hl.get_mol_weight(formula)
 
     mass_diff = get_mass_diff(isotracer,element)
     if mass_diff:
-        required_ppm = get_ppm_required(formula, mass_diff)
+        required_ppm = get_ppm_required(metabolite_mass, mass_diff)
+        ppm_user_input = get_intrument_ppm_from_res(res, res_mw, metabolite_mass, instrument)
+
         if ppm_validation(ppm_user_input, required_ppm, formula, element):
             return element
 
@@ -142,7 +151,7 @@ def add_isotopes_list(indis_ele_list):
     return indis_ele_list_isotopes
 
 
-def get_element_correction_dict(ppm_user_input, formula, isotracer):
+def get_element_correction_dict(formula, isotracer, res, res_mw, instrument):
     """This function returns a dictionary with all isotracer elements
     as key and indistinguishable isotopes as values.
 
@@ -165,7 +174,7 @@ def get_element_correction_dict(ppm_user_input, formula, isotracer):
         if isotope[0] in ele_list:
             indis_ele_list = list(ele_list_without_isotracer.intersection(set(isotope_ele)))
             indis_ele_list = add_isotopes_list(indis_ele_list)
-            get_ele = lambda iso: get_indistinguishable_ele(isotope, formula, ppm_user_input, iso)
+            get_ele = lambda iso: get_indistinguishable_ele(isotope, formula, iso, res, res_mw, instrument)
             indis_element = map(get_ele, indis_ele_list)
             indis_element = filter(None, indis_element)
             element_correction_dict[isotope[0]] = indis_element
