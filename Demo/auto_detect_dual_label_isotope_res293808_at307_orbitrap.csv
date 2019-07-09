@@ -1,0 +1,26 @@
+,Name,Label,Formula,Sample,Intensity_x,Unlabeled Fragment,Indistinguishable_isotope,NA Corrected,Intensity_y,NA Corrected with zero,Pool_total,Fractional enrichment
+0,Glutathione,C12 PARENT,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",9.87E-17,0,9.87E-17,1.023658051,9.64E-17
+1,Glutathione,C13-label-1,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",6.48E-17,0,6.48E-17,1.023658051,6.33E-17
+2,Glutathione,C13-label-2,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",2.19E-17,0,2.19E-17,1.023658051,2.14E-17
+3,Glutathione,C13-label-3,C10H17N3O6S,Sample 1,0.178,Glutathione,"{'C': ['O17'], 'N': ['S34']}",0.207773526,0.178,0.207773526,1.023658051,0.202971613
+4,Glutathione,C13-label-4,C10H17N3O6S,Sample 1,0.013,Glutathione,"{'C': ['O17'], 'N': ['S34']}",-0.001632273,0.013,0,1.023658051,0
+5,Glutathione,C13-label-5,C10H17N3O6S,Sample 1,0.0002,Glutathione,"{'C': ['O17'], 'N': ['S34']}",-0.000235602,0.0002,0,1.023658051,0
+6,Glutathione,C13-label-6,C10H17N3O6S,Sample 1,0.0001,Glutathione,"{'C': ['O17'], 'N': ['S34']}",0.000118535,0.0001,0.000118535,1.023658051,0.000115795
+7,Glutathione,C13N15-label-1-3,C10H17N3O6S,Sample 1,0.0785,Glutathione,"{'C': ['O17'], 'N': ['S34']}",0.000528497,0.0785,0.000528497,1.023658051,0.000516282
+8,Glutathione,C13N15-label-1-1,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",-1.31E-07,0,0,1.023658051,0
+9,Glutathione,C13N15-label-1-2,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",9.40E-10,0,9.40E-10,1.023658051,9.19E-10
+10,Glutathione,C13N15-label-2-2,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",4.93E-09,0,4.93E-09,1.023658051,4.81E-09
+11,Glutathione,C13N15-label-2-3,C10H17N3O6S,Sample 1,0.0047,Glutathione,"{'C': ['O17'], 'N': ['S34']}",0.000725902,0.0047,0.000725902,1.023658051,0.000709126
+12,Glutathione,C13N15-label-3-1,C10H17N3O6S,Sample 1,0.0016,Glutathione,"{'C': ['O17'], 'N': ['S34']}",-0.000382996,0.0016,0,1.023658051,0
+13,Glutathione,C13N15-label-3-2,C10H17N3O6S,Sample 1,0.0091,Glutathione,"{'C': ['O17'], 'N': ['S34']}",0.001331186,0.0091,0.001331186,1.023658051,0.00130042
+14,Glutathione,C13N15-label-3-3,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",-0.000300081,0,0,1.023658051,0
+15,Glutathione,C13N15-label-4-1,C10H17N3O6S,Sample 1,0.0004,Glutathione,"{'C': ['O17'], 'N': ['S34']}",0.000328667,0.0004,0.000328667,1.023658051,0.000321071
+16,Glutathione,C13N15-label-4-2,C10H17N3O6S,Sample 1,0.0007,Glutathione,"{'C': ['O17'], 'N': ['S34']}",2.77E-05,0.0007,2.77E-05,1.023658051,2.70E-05
+17,Glutathione,C13N15-label-4-3,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",-2.45E-06,0,0,1.023658051,0
+18,Glutathione,C13N15-label-5-1,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",-2.41E-05,0,0,1.023658051,0
+19,Glutathione,C13N15-label-5-3,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",9.34E-07,0,9.34E-07,1.023658051,9.12E-07
+20,Glutathione,C13N15-label-6-1,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",-4.65E-07,0,0,1.023658051,0
+21,Glutathione,C13N15-label-6-3,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",-1.62E-08,0,0,1.023658051,0
+22,Glutathione,N15-label-1,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",3.31E-06,0,3.31E-06,1.023658051,3.24E-06
+23,Glutathione,N15-label-2,C10H17N3O6S,Sample 1,0,Glutathione,"{'C': ['O17'], 'N': ['S34']}",-2.38E-08,0,0,1.023658051,0
+24,Glutathione,N15-label-3,C10H17N3O6S,Sample 1,0.6808,Glutathione,"{'C': ['O17'], 'N': ['S34']}",0.812819456,0.6808,0.812819456,1.023658051,0.794034155
