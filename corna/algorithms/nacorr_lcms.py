@@ -109,7 +109,7 @@ def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, el
     return final_df
 
 
-def na_correction(merged_df, iso_tracers, ppm_input_user, eleme_corr, na_dict=get_na_value_dict(), autodetect=False):
+def na_correction(merged_df, iso_tracers, eleme_corr, na_dict=get_na_value_dict(), autodetect=False, res=None, res_mw=None, instrument=None):
     """
     This function performs na correction on the input data frame for LCMS file. 
     This function is a wrapper around perform_nacorrection_metab function. It preprocesses 
@@ -151,7 +151,7 @@ def na_correction(merged_df, iso_tracers, ppm_input_user, eleme_corr, na_dict=ge
     if autodetect:
         for metab in std_label_df.Name.unique():
             formula= std_label_df[std_label_df[cons.NAME_COL]== metab].Formula.unique()
-            auto_eleme_corr = get_element_correction_dict(ppm_input_user, formula[0] ,iso_tracers)
+            auto_eleme_corr = get_element_correction_dict(formula[0] ,iso_tracers, res, res_mw, instrument)
             eleme_corr_dict[metab] = auto_eleme_corr
             final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict,
                                                      auto_eleme_corr, final_df)            
