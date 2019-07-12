@@ -81,7 +81,10 @@ def background(list_of_replicates, input_fragment_value, unlabeled_fragment_valu
         for each_replicate in replicate_group:
             noise = background_noise(unlabeled_fragment_value.data[each_replicate], na, parent_atoms,
                                      parent_label, daughter_atoms, daughter_label)
-            background = background_subtraction(input_fragment_value.data[each_replicate], noise)
+            try:
+                background = background_subtraction(input_fragment_value.data[each_replicate], noise)
+            except:
+                background = background_subtraction(0, noise)
             background_list.append(background)
         background_value = max(background_list)
         for each_replicate in replicate_group:
