@@ -3,6 +3,7 @@ This module is a wrapper around algorithms.py. It calls different functions from
 and performs na correction (na_correction function). The output is given in the form of dataframe 
 which can further be used in post processing function etc.
 """
+from copy import copy
 
 import numpy as np
 import pandas as pd
@@ -76,7 +77,7 @@ def multiplying_df_with_matrix(isotracer, corr_mat_for_isotracer, curr_df):
     corr_df.index.name = isotracer
     return corr_df
 
-def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, eleme_corr,final_df):
+def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, eleme_corr,final_df, autodetect, corr_limit):
     """
     This function performs na correcion for each metabolite one by one, adds required info
     back to the dataframe and then returns the NA corrected dataframe.
@@ -102,7 +103,7 @@ def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, el
     """
     required_df, formula, formula_dict = parser.filter_required_col_and_get_formula_dict(df, metab,
                                                                      iso_tracers, required_col)
-    corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, eleme_corr)
+    corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, eleme_corr, autodetect, corr_limit)
     corrected_df = get_correct_df_by_multiplication(iso_tracers, required_df, corr_mats)
     info_df= parser.add_name_formula_label_col(corrected_df, metab, formula[0], iso_tracers, eleme_corr)
     final_df=final_df.append(info_df)
@@ -147,14 +148,13 @@ def na_correction(merged_df, iso_tracers, eleme_corr, na_dict=get_na_value_dict(
     merged_df =merged_df.rename_axis(None, axis=1).reset_index()
     
     std_label_df = parser.get_isotope_columns_frm_label_col(merged_df, iso_tracers)   
-     
     if autodetect:
         for metab in std_label_df.Name.unique():
             formula= std_label_df[std_label_df[cons.NAME_COL]== metab].Formula.unique()
-            auto_eleme_corr = get_element_correction_dict(formula[0] ,iso_tracers, res, res_mw, instrument)
+            auto_eleme_corr, corr_limit = get_element_correction_dict(formula[0] ,iso_tracers, res, res_mw, instrument)
             eleme_corr_dict[metab] = auto_eleme_corr
             final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict,
-                                                     auto_eleme_corr, final_df)            
+                                                     auto_eleme_corr, final_df, autodetect=True, corr_limit=corr_limit)            
     
     else:
         eleme_corr_invalid_entry(iso_tracers, eleme_corr)
@@ -162,7 +162,7 @@ def na_correction(merged_df, iso_tracers, eleme_corr, na_dict=get_na_value_dict(
         for metab in std_label_df.Name.unique():
             eleme_corr_dict[metab] = eleme_corr 
             final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict,
-                                                     eleme_corr, final_df) 
+                                                     eleme_corr, final_df, autodetect=False, corr_limit=None) 
             
     #convert na corrected datframe back from wide format to long format        
     df_long = pd.melt(final_df, id_vars=[cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL, cons.INDIS_ISOTOPE_COL])

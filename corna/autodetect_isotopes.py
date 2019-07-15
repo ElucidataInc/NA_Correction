@@ -4,6 +4,17 @@ import constants as cs
 import helpers as hl
 
 
+def get_correction_limit(res, res_mw, m, instrument, mass_diff):
+    if instrument=='orbitrap':
+        print(res*np.power(res_mw, 0.5)*mass_diff)
+        print(np.multiply(1.66, np.power(m,1.5)))
+        print(np.divide(np.multiply(1.66, np.power(m,1.5)), res*np.power(res_mw, 0.5)*mass_diff))
+        corr_limit = np.floor(np.divide(np.multiply(1.66, np.power(m,1.5)), res*np.power(res_mw, 0.5)*mass_diff))
+    elif instrument=='ft-icr':
+        corr_limit = np.floor(np.divide(np.multiply(1.66, np.power(m,2)), np.multiply(res, res_mw, mass_diff)))
+    print(corr_limit)
+    return corr_limit
+
 def get_intrument_ppm_from_res(res, res_mw, m, instrument):
     if instrument=='orbitrap':
         inst_ppm = np.multiply(10**6,(np.divide(np.multiply(1.66, np.power(m,0.5)), np.multiply(res, np.power(res_mw, 0.5)))))
@@ -80,7 +91,6 @@ def ppm_validation(ppm_user_input, required_ppm, formula, ele):
     Returns:
         boolean value if the requirement is met
     """
-
     if (borderline_ppm_warning(ppm_user_input, required_ppm, formula, ele)) \
        or (ppm_user_input > required_ppm):
        return True
@@ -100,14 +110,14 @@ def get_indistinguishable_ele(isotracer, formula, element, res, res_mw, instrume
         element which is indistinguishable
     """
     metabolite_mass = hl.get_mol_weight(formula)
-
     mass_diff = get_mass_diff(isotracer,element)
+    print(mass_diff)
     if mass_diff:
         required_ppm = get_ppm_required(metabolite_mass, mass_diff)
         ppm_user_input = get_intrument_ppm_from_res(res, res_mw, metabolite_mass, instrument)
-
-        if ppm_validation(ppm_user_input, required_ppm, formula, element):
-            return element
+        #if ppm_validation(ppm_user_input, required_ppm, formula, element):
+        corr_limit = get_correction_limit(res, res_mw, metabolite_mass, instrument, mass_diff)
+        return element, corr_limit
 
 
 def get_isotope_element_list(isotracer):
@@ -164,8 +174,8 @@ def get_element_correction_dict(formula, isotracer, res, res_mw, instrument):
     Returns:
         element_correction_dict: element correction dictionary.
     """
-
     element_correction_dict = {}
+    correction_limit_dict = {}
     ele_list = (hl.parse_formula(formula)).keys()
     isotracer_list = get_isotope_element_list(isotracer)
     isotope_ele = get_isotope_element_list(cs.MASS_DIFF_DICT.keys())
@@ -174,10 +184,18 @@ def get_element_correction_dict(formula, isotracer, res, res_mw, instrument):
         if isotope[0] in ele_list:
             indis_ele_list = list(ele_list_without_isotracer.intersection(set(isotope_ele)))
             indis_ele_list = add_isotopes_list(indis_ele_list)
+            print(indis_ele_list)
             get_ele = lambda iso: get_indistinguishable_ele(isotope, formula, iso, res, res_mw, instrument)
+            print(get_ele)
             indis_element = map(get_ele, indis_ele_list)
+            print(indis_element)
             indis_element = filter(None, indis_element)
-            element_correction_dict[isotope[0]] = indis_element
-
-    return element_correction_dict
+            indis_element_list = []
+            for ele, num in indis_element:
+                correction_limit_dict[ele] = num
+                indis_element_list.append(ele)
+            element_correction_dict[isotope[0]] = indis_element_list
+    print(element_correction_dict)
+    print(correction_limit_dict)
+    return element_correction_dict, correction_limit_dict
 
