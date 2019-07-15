@@ -1,0 +1,3 @@
+,Name,Label,Formula,Sample,Intensity_x,Unlabeled Fragment,Indistinguishable_isotope,NA Corrected,Intensity_y,NA Corrected with zero,Pool_total,Fractional enrichment
+0,glucose-6-phosphate,C12 PARENT,C6H13O9P,1_1,12658.33,glucose-6-phosphate,"{'H': ['C', 'O17']}",13821.884059829821,12658.33,13821.884059829821,106150.68606642676,0.1302100304013145
+1,glucose-6-phosphate,H2-label-1,C6H13O9P,1_1,85214.52,glucose-6-phosphate,"{'H': ['C', 'O17']}",92071.83712513791,85214.52,92071.83712513791,106150.68606642676,0.8673692138694364
