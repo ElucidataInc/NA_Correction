@@ -133,7 +133,6 @@ def add_name_formula_label_col(info_df, metab, formula, iso_tracers, eleme_corr)
     info_df=create_label_column_frm_isotope_columns(info_df, iso_tracers)
     info_df[cons.NAME_COL]= metab
     info_df[cons.FORMULA_COL] = formula
-    info_df[cons.INDIS_ISOTOPE_COL] = str(eleme_corr)
     return info_df
 
 
