@@ -89,6 +89,7 @@ KEY_NA = "naValue"
 KEY_AMU = "amu"
 KEY_ELE = "element"
 KEY_NAT_ISO = "naturalIsotope"
+KEY_AMU_DIFF = 'amu_diff'
 ORIGINAL_FILENAME = "Original Filename"
 BACKGROUND_SAMPLE = "Background Sample"
 FORMULA_COL_METADATAFILE = ['Formula', 'Parent Formula']
@@ -120,17 +121,7 @@ MASS_DIFF_DICT= {
       "S33": 0.0068889857,
       "O18": 0.008307111
     },
-      "D1": {
-        "O17": 0.0020596653,
-        "C": 0.0029219079,
-        "N": 0.0092418523,
-        "S34": 0.0167575915,
-        "Si29": 0.0067085782,
-        "Si30": 0.015709854,
-        "S33": 0.0068889857,
-        "O18": 0.008307111
-      },
-     "N15": {
+         "N15": {
       "O17": 0.007182187,
       "C": 0.0063199444,
       "H": 0.0092418523,
