@@ -4,6 +4,8 @@ from copy import copy
 import numpy as np
 from numpy.linalg import pinv
 import pandas as pd
+from scipy.special import binom
+
 
 from corna.constants import ISOTOPE_NA_MASS, KEY_ELE
 from corna.helpers import get_isotope_element
@@ -29,6 +31,14 @@ def make_expected_na_matrix(N, pvec):
 
 
 
+def na_term(pvec,n,i,j=0):
+    if len(pvec)==2:
+        coeff = binom(n,i)*(pvec[0])**(n-i)*(pvec[1])**i
+    elif len(pvec)==3:
+        coeff = binom(n, n-i-j)*binom(i+j,i)*pvec[0]**(n-i-j)*pvec[1]**i*pvec[2]**j
+    return coeff
+
+
 def add_indistinguishable_element(M,n,pvec):
     """to a matrix M formed by make_expected_na_matrix, add additional expected
     intensity corresponding to natural abundance from elements with same isotopic mass shift
@@ -36,16 +46,14 @@ def add_indistinguishable_element(M,n,pvec):
     M: previous matrix formed by make_expected_na_matrix
     n: number of atoms of new element
     pvec: expected isotopic distribution of new element (e.g. [0.99,0.01])"""
-    max_label = (n*(len(pvec)-1))
-    M_new = np.zeros((M.shape[0]+max_label, M.shape[1]))
-    M_new[:M.shape[0], :] = M
+    M_new = np.zeros((M.shape[0], M.shape[1]))
+    M_new[:M.shape[0],:]=M    
     for i in range(M.shape[1]):
         for j in range(n):
             M_new[:, i] = np.convolve(M_new[:, i], pvec)[:M_new.shape[0]]
     return M_new
 
-def add_indistinguishable_element_for_autodetect(M, n,pvec, corr_limit):
-    max_label = (n*(len(pvec)-1))
+def add_indistinguishable_element_for_autodetect_2(M, n, pvec, corr_limit):
     M_new = np.zeros((M.shape[0], M.shape[1]))
     M_new[:M.shape[0], :] = np.eye(M.shape[1])
     for i in range(M.shape[1]):
@@ -53,9 +61,19 @@ def add_indistinguishable_element_for_autodetect(M, n,pvec, corr_limit):
             M_new[:, i] = np.convolve(M_new[:, i], pvec)[:M_new.shape[0]]
         for k in range(i+min(M.shape[1], corr_limit, n)+1 , M_new.shape[0]):
             M_new[k, i] = 0
-    print(M_new)
-    print(np.matmul(M_new, M))
-    #np.matmul(M_new, M)
+    return M_new
+
+def add_indistinguishable_element_for_autodetect_3(M, n, pvec, corr_limit_1, corr_limit_2):
+    M_new = np.zeros((M.shape[0], M.shape[1]))
+    
+    for i in range(min(n, corr_limit_1)+1):
+        for j in range(min(n, corr_limit_2)+1):
+            k=i+2*j
+            if(i+j>n or k>M.shape[1]):
+                break
+            else:
+                for m in range(M.shape[1]-k):
+                    M_new[k+m][m] = M_new[k+m][m] + na_term(pvec,n,i,j)
     return M_new
 
 
@@ -72,58 +90,54 @@ def make_correction_matrix(trac_atom, formuladict, na_dict, indist_elems, autode
     """
     lookup_dict = {'O':['O16','O17','O18'], 'S':['S32','S33','S34'], 'Si':['Si28','Si29','Si30']}
     M = make_expected_na_matrix(formuladict.get(trac_atom, 0), na_dict[trac_atom])
-    indist_elems_copy = indist_elems
+    M_indist = []
+
+    indist_elems_copy = copy(indist_elems)
     na_dict_copy = copy(na_dict)
-    for e in indist_elems:
+    for e in indist_elems_copy:
         e2 = get_isotope_element(e)
-        try:
-            if(lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy):
-                # indist_elems_copy.remove(str(lookup_dict[e2][1]))
-                # indist_elems_copy.remove(str(lookup_dict[e2][2]))
-                # indist_elems.append(e2)
-                # pos = lookup_dict[e2].index(str(e))
-                # list_values = [0]*3
-                # list_values[0]= na_dict_copy[e2][0]
-                # list_values[pos]= na_dict_copy[e2][pos]
-                na_dict_copy[lookup_dict[e2][1]] = [na_dict_copy[e2][0],na_dict_copy[e2][1],0]
-                na_dict_copy[lookup_dict[e2][2]] = [0,0,na_dict_copy[e2][2]]
-
-                #na_dict_copy[str(e)]=list_values  
-
-            elif ((lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] not in indist_elems_copy)) or \
-                            ((lookup_dict[e2][1] not in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy)):
-                pos = lookup_dict[e2].index(str(e))
-                list_values = [0]*3
-                list_values[0]= na_dict_copy[e2][0]
-                list_values[pos]= na_dict_copy[e2][pos]
-                na_dict_copy[str(e)]=list_values  
-        except KeyError :
-        	pass
-        print(e2)
-        print(na_dict_copy)
-        M_indist = []
         if e2 in formuladict:
-            e1 = ISOTOPE_NA_MASS[KEY_ELE][e]
             try:
-                if autodetect:
-                    print(corr_limit[e])
-                    M_indist.append(add_indistinguishable_element_for_autodetect(M, formuladict[e1], na_dict_copy[e], int(corr_limit[e])))
+                if(lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy):
+                    if autodetect:
+                        corr_limit_1 = int(corr_limit[lookup_dict[e2][1]])
+                        corr_limit_2 = int(corr_limit[lookup_dict[e2][2]])
+                        M_indist.append(add_indistinguishable_element_for_autodetect_3(M, formuladict[e2], na_dict_copy[e2], corr_limit_1, corr_limit_2))
+                    else:
+                        M = add_indistinguishable_element(M, formuladict[e2], na_dict_copy[e2])
+                    indist_elems_copy.remove(lookup_dict[e2][1])
+                    indist_elems_copy.remove(lookup_dict[e2][2])
 
+                elif ((lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] not in indist_elems_copy)) or \
+                            ((lookup_dict[e2][1] not in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy)):
+                    pos = lookup_dict[e2].index(str(e))
+                    list_values = [0]*3
+                    list_values[0]= na_dict_copy[e2][0]
+                    list_values[pos]= na_dict_copy[e2][pos]
+                    na_dict_copy[str(e)]=list_values  
+                    if autodetect:
+                        corr_limit_1 = int(corr_limit[e])
+                        M_indist.append(add_indistinguishable_element_for_autodetect_2(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
+                    else:
+                        M = add_indistinguishable_element(M, formuladict[e2], na_dict_copy[e])
                 else:
-                    M = add_indistinguishable_element(M, formuladict[e1], na_dict_copy[e])
-            except:
+                    if autodetect:
+                        corr_limit_1 = int(corr_limit[e])
+                        M_indist.append(add_indistinguishable_element_for_autodetect_2(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
+                    else:
+                        M = add_indistinguishable_element(M, formuladict[e2], na_dict_copy[e])
+            except KeyError :
                 if autodetect:
-                    print(corr_limit[e])
-                    M_indist.append(add_indistinguishable_element_for_autodetect(M, formuladict[e1], na_dict_copy[e], int(corr_limit[e])))
+                    corr_limit_1 = int(corr_limit[e])
+                    M_indist.append(add_indistinguishable_element_for_autodetect_2(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
                 else:
-                    M = add_indistinguishable_element(M, formuladict[e1], na_dict_copy[e2])
-        if M_indist:
-            i = np.eye(M.shape[1])
-            for m in M_indist:
-                if not np.all(m==0):
-                    m = np.matmul(m, i)
-                    i=m
-            M = np.matmul(i, M)
+                    M = add_indistinguishable_element(M, formuladict[e2], na_dict_copy[e])
+    if M_indist:
+        i = np.eye(M.shape[1])
+        for m in M_indist:
+            m = np.matmul(m, i)
+            i=m
+        M = np.matmul(i, M)
     return pinv(M)
 
 

@@ -7,6 +7,8 @@ from copy import copy
 
 import numpy as np
 import pandas as pd
+import scipy.optimize
+
 
 import matrix_calc as algo
 import corna.inputs.maven_parser as parser
@@ -55,6 +57,7 @@ def get_correct_df_by_multiplication(isotracers, preprocessed_df, corr_mats):
     return curr_df
     
 
+
 def multiplying_df_with_matrix(isotracer, corr_mat_for_isotracer, curr_df):
     """This function takes the correction matrix for given isotracer and multiplies
     it with the sample values of the dataframe to give corrected sample values
@@ -70,11 +73,15 @@ def multiplying_df_with_matrix(isotracer, corr_mat_for_isotracer, curr_df):
          0  0.2079  0.9702
 	     1  0.3421  0.1198
     """
+
     num_rows, num_cols = corr_mat_for_isotracer.shape
     curr_df = curr_df.reindex(np.arange(num_cols)).fillna(0)
+
     corr_data = np.matmul(corr_mat_for_isotracer, curr_df.values)
-    corr_df = pd.DataFrame(data=corr_data, index=pd.index.np.arange(num_rows),columns=curr_df.columns)
+        
+    corr_df = pd.DataFrame(data=corr_data, index=pd.index.np.arange(num_rows), columns=curr_df.columns)
     corr_df.index.name = isotracer
+
     return corr_df
 
 def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, eleme_corr,final_df, autodetect, corr_limit):
@@ -152,7 +159,7 @@ def na_correction(merged_df, iso_tracers, eleme_corr, na_dict=get_na_value_dict(
         for metab in std_label_df.Name.unique():
             formula= std_label_df[std_label_df[cons.NAME_COL]== metab].Formula.unique()
             auto_eleme_corr, corr_limit = get_element_correction_dict(formula[0] ,iso_tracers, res, res_mw, instrument)
-            eleme_corr_dict[metab] = auto_eleme_corr
+            eleme_corr_dict[metab] = corr_limit
             final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict,
                                                      auto_eleme_corr, final_df, autodetect=True, corr_limit=corr_limit)            
     
@@ -165,7 +172,7 @@ def na_correction(merged_df, iso_tracers, eleme_corr, na_dict=get_na_value_dict(
                                                      eleme_corr, final_df, autodetect=False, corr_limit=None) 
             
     #convert na corrected datframe back from wide format to long format        
-    df_long = pd.melt(final_df, id_vars=[cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL, cons.INDIS_ISOTOPE_COL])
+    df_long = pd.melt(final_df, id_vars=[cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL])
     df_long.rename(columns={'variable': cons.SAMPLE_COL, 'value':cons.NA_CORRECTED_COL},inplace=True)
 
     #merge original_df with na corrected df to get specific column information
