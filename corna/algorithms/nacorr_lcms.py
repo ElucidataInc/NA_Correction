@@ -53,7 +53,6 @@ def get_correct_df_by_multiplication(isotracers, preprocessed_df, corr_mats):
                 keys.append(group_no)
             curr_df = pd.concat(L, keys=keys, names=index_cols)
             curr_df.index = curr_df.index.reorder_levels(preprocessed_df.index.names)
-
     return curr_df
     
 
@@ -84,7 +83,7 @@ def multiplying_df_with_matrix(isotracer, corr_mat_for_isotracer, curr_df):
 
     return corr_df
 
-def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, eleme_corr,final_df, autodetect, corr_limit):
+def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, final_df, autodetect, corr_limit):
     """
     This function performs na correcion for each metabolite one by one, adds required info
     back to the dataframe and then returns the NA corrected dataframe.
@@ -110,14 +109,15 @@ def perform_nacorrection_metab(df, metab, iso_tracers, required_col, na_dict, el
     """
     required_df, formula, formula_dict = parser.filter_required_col_and_get_formula_dict(df, metab,
                                                                      iso_tracers, required_col)
-    corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, eleme_corr, autodetect, corr_limit)
+    corr_mats = algo.make_all_corr_matrices(iso_tracers, formula_dict, na_dict, autodetect, corr_limit)
     corrected_df = get_correct_df_by_multiplication(iso_tracers, required_df, corr_mats)
-    info_df= parser.add_name_formula_label_col(corrected_df, metab, formula[0], iso_tracers, eleme_corr)
+    ##something from parser should not be in algorithms
+    info_df= parser.add_name_formula_label_col(corrected_df, metab, formula[0], iso_tracers)
     final_df=final_df.append(info_df)
     return final_df
 
 
-def na_correction(merged_df, iso_tracers, eleme_corr, na_dict=get_na_value_dict(), autodetect=False, res=None, res_mw=None, instrument=None):
+def na_correction(merged_df, iso_tracers, res_type='low res', na_dict=get_na_value_dict(), autodetect=False, res=None, res_mw=None, instrument=None):
     """
     This function performs na correction on the input data frame for LCMS file. 
     This function is a wrapper around perform_nacorrection_metab function. It preprocesses 
@@ -158,18 +158,20 @@ def na_correction(merged_df, iso_tracers, eleme_corr, na_dict=get_na_value_dict(
     if autodetect:
         for metab in std_label_df.Name.unique():
             formula= std_label_df[std_label_df[cons.NAME_COL]== metab].Formula.unique()
-            auto_eleme_corr, corr_limit = get_element_correction_dict(formula[0] ,iso_tracers, res, res_mw, instrument)
+            corr_limit = get_element_correction_dict(formula[0] , res_type, iso_tracers, res, res_mw, instrument)
             eleme_corr_dict[metab] = corr_limit
             final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict,
-                                                     auto_eleme_corr, final_df, autodetect=True, corr_limit=corr_limit)            
+                                                     final_df, autodetect=True, corr_limit=corr_limit)            
     
     else:
-        eleme_corr_invalid_entry(iso_tracers, eleme_corr)
+        #eleme_corr_invalid_entry(iso_tracers, eleme_corr)
         
         for metab in std_label_df.Name.unique():
-            eleme_corr_dict[metab] = eleme_corr 
+            formula= std_label_df[std_label_df[cons.NAME_COL]== metab].Formula.unique()
+            corr_limit = get_element_correction_dict(formula[0], res_type, iso_tracers, res, res_mw, instrument)
+            eleme_corr_dict[metab] = corr_limit 
             final_df= perform_nacorrection_metab(std_label_df, metab, iso_tracers, required_col, na_dict,
-                                                     eleme_corr, final_df, autodetect=False, corr_limit=None) 
+                                                     final_df, autodetect=False, corr_limit=corr_limit) 
             
     #convert na corrected datframe back from wide format to long format        
     df_long = pd.melt(final_df, id_vars=[cons.NAME_COL, cons.FORMULA_COL, cons.LABEL_COL])

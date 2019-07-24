@@ -99,7 +99,10 @@ def get_mol_weight(formula):
     Returns:
         mol_weight (float): molecular weight
     """
-    parsed_formula = parse_formula(formula)
+    if isinstance(formula, basestring):
+        parsed_formula = parse_formula(formula)
+    elif isinstance(formula, dict):
+        parsed_formula = formula
     mol_weight = 0
     for sym, qty in parsed_formula.iteritems():
         mol_weight = mol_weight + get_atomic_weight(sym) * qty
