@@ -17,7 +17,7 @@ def make_expected_na_matrix(N, pvec):
 
     N: number of atoms of this element
     pvec: expected isotopic distribution (e.g. [0.99,0.01])"""
-    print('label', pvec)
+    ##this will work for +1 Isotopes like C13, N15, O17 but not O18
     max_label=1+(N*(len(pvec)-1))
     correction_matrix = np.zeros((max_label,N+1))
     for i in range(N+1):
@@ -27,8 +27,29 @@ def make_expected_na_matrix(N, pvec):
             column = np.convolve(column, pvec)
         column.resize(max_label)
         correction_matrix[:, i] = column
-    return correction_matrix
+    return correction_matrix[:N+1]
+    
+def make_expected_na_matrix_3(N, pvec):
+    """for a single labeled element, create the matrix M
+    such that Mx=y where x is the actual distribution of input labels
+    and y is the expected distribution of intensities with natural abundance
 
+    N: number of atoms of this element
+    pvec: expected isotopic distribution (e.g. [0.99,0.01])"""
+    ##for +2 isotopologues
+    max_label=1+(N*(len(pvec)-1))
+    M_new = np.zeros((max_label,max_label))
+    
+    for i in range(N+1):
+        for j in range(N+1):
+            k=i+2*j
+            if(i+j>N or k>max_label):
+                break
+            else:
+                for m in range(max_label-k):
+                    M_new[k+m][m] = M_new[k+m][m] + na_term(pvec,N,i,j)
+    M_new[max_label-1][max_label-1] = 1
+    return M_new
 
 
 def na_term(pvec,n,i,j=0):
@@ -46,6 +67,8 @@ def add_indistinguishable_element(M,n,pvec):
     M: previous matrix formed by make_expected_na_matrix
     n: number of atoms of new element
     pvec: expected isotopic distribution of new element (e.g. [0.99,0.01])"""
+    #max_label=(n*(len(pvec)-1))
+    #M_new=np.zeros((M.shape[0]+max_label,M.shape[1]))
     M_new = np.zeros((M.shape[0], M.shape[1]))
     M_new[:M.shape[0],:]=M    
     for i in range(M.shape[1]):
@@ -54,8 +77,6 @@ def add_indistinguishable_element(M,n,pvec):
     return M_new
 
 def add_indistinguishable_element_for_autodetect_2(M, n, pvec, corr_limit):
-    print(corr_limit)
-    print(pvec)
     M_new = np.zeros((M.shape[0], M.shape[1]))
     M_new[:M.shape[0], :] = np.eye(M.shape[1])
     for i in range(M.shape[1]):
@@ -66,11 +87,7 @@ def add_indistinguishable_element_for_autodetect_2(M, n, pvec, corr_limit):
     return M_new
 
 def add_indistinguishable_element_for_autodetect_3(M, n, pvec, corr_limit_1, corr_limit_2):
-    print(corr_limit_1)
-    print(corr_limit_2)
-    print(pvec)
     M_new = np.zeros((M.shape[0], M.shape[1]))
-    
     for i in range(min(n, corr_limit_1)+1):
         for j in range(min(n, corr_limit_2)+1):
             k=i+2*j
@@ -94,28 +111,23 @@ def make_correction_matrix(trac_atom, formuladict, na_dict, indist_elems, autode
     in more appropriate way.
     """
     lookup_dict = {'O':['O16','O17','O18'], 'S':['S32','S33','S34'], 'Si':['Si28','Si29','Si30']}
-    M = make_expected_na_matrix(formuladict.get(trac_atom, 0), na_dict[trac_atom])
+    if (trac_atom == 'O18' or trac_atom == 'S34' or trac_atom == 'Si30'):
+    	M = make_expected_na_matrix_3(formuladict.get(trac_atom, 0), na_dict[trac_atom])
+    else:
+    	M = make_expected_na_matrix(formuladict.get(trac_atom, 0), na_dict[trac_atom])
     M_indist = []
 
     indist_elems_copy = copy(indist_elems)
-    print(indist_elems_copy)
     na_dict_copy = copy(na_dict)
     for e in indist_elems:
         if e in indist_elems_copy:
-            print(e)
             e2 = get_isotope_element(e)
-            print(e2)
             if e2 in formuladict:
-                print(e2)
                 try:
                     if(lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy):
-                        #if autodetect:
                         corr_limit_1 = int(corr_limit[lookup_dict[e2][1]])
                         corr_limit_2 = int(corr_limit[lookup_dict[e2][2]])
                         M_indist.append(add_indistinguishable_element_for_autodetect_3(M, formuladict[e2], na_dict_copy[e2], corr_limit_1, corr_limit_2))
-                        #else:
-
-                            #M = add_indistinguishable_element(M, formuladict[e2], na_dict_copy[e2])
                         indist_elems_copy.remove(lookup_dict[e2][1])
                         indist_elems_copy.remove(lookup_dict[e2][2])
 
@@ -126,30 +138,20 @@ def make_correction_matrix(trac_atom, formuladict, na_dict, indist_elems, autode
                         list_values[0]= na_dict_copy[e2][0]
                         list_values[pos]= na_dict_copy[e2][pos]
                         na_dict_copy[str(e)]=list_values  
-                        #if autodetect:
                         corr_limit_1 = int(corr_limit[e])
                         M_indist.append(add_indistinguishable_element_for_autodetect_2(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
-                        #else:
-                        #    M = add_indistinguishable_element(M, formuladict[e2], na_dict_copy[e])
+
                     else:
-                        #if autodetect:
                         corr_limit_1 = int(corr_limit[e])
                         M_indist.append(add_indistinguishable_element_for_autodetect_2(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
-                        #else:
-                        #M = add_indistinguishable_element(M, formuladict[e2], na_dict_copy[e])
+
                 except Exception, exception_str:
-                    #if autodetect:
-                    print(str(exception_str))
-                    print(e)
                     corr_limit_1 = int(corr_limit[e])
                     M_indist.append(add_indistinguishable_element_for_autodetect_2(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
-                    #else:
-                        #M = add_indistinguishable_element(M, formuladict[e2], na_dict_copy[e])
-            print(indist_elems_copy)
+
     if M_indist:
         i = np.eye(M.shape[1])
         for m in M_indist:
-            print(m)
             m = np.matmul(m, i)
             i=m
         M = np.matmul(i, M)
@@ -175,7 +177,6 @@ def make_all_corr_matrices(isotracers, formula_dict, na_dict, autodetect, corr_l
     for isotracer in isotracers:
         trac_atom = get_isotope_element(isotracer)
         try:
-            print(trac_atom)
             indist_list = corr_limit[str(trac_atom)].keys()
         except KeyError:
             indist_list = []

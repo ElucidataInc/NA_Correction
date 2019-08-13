@@ -108,7 +108,6 @@ def get_indistinguishable_ele(isotracer, res_type, formula, element, res, res_mw
         element which is indistinguishable
     """
     metabolite_mass = hl.get_mol_weight(formula)
-    print('get_indistinguishable_ele', element)
     if res_type == 'low res':
         #not element but isotope, need to change the name
         element_symbol = hl.get_isotope_element(element)
@@ -116,8 +115,6 @@ def get_indistinguishable_ele(isotracer, res_type, formula, element, res, res_mw
     elif res_type == 'ultra high res':
         corr_limit = 0
     elif res_type == 'autodetect':
-        print('isotracer auto', isotracer)
-        print('element', element)
         mass_diff = get_mass_diff(isotracer,element)
         if mass_diff:
             required_ppm = get_ppm_required(metabolite_mass, mass_diff)
@@ -163,7 +160,6 @@ def add_isotopes_list(indis_ele_list):
     indis_ele_list_isotopes = []
     for ele in indis_ele_list:
         if ele in cs.ISOTOPE_DICT.keys():
-            print('temp list', temp_indis_ele_list)
             temp_indis_ele_list = list((set(temp_indis_ele_list)-set([ele]))) + list(set(cs.ISOTOPE_DICT[ele]))
     return temp_indis_ele_list
 
@@ -185,14 +181,10 @@ def get_element_correction_dict(formula, res_type, isotracer, res, res_mw, instr
     element_correction_dict = {}
     formula_dict = hl.parse_formula(formula)
     ele_list = formula_dict.keys()
-    print('ele list', ele_list)
     isotracer_list = get_isotope_element_list(isotracer)
-    print('isotracer list', isotracer_list)
     isotope_ele = get_isotope_element_list(cs.MASS_DIFF_DICT.keys())
-    print('isotope ele', isotope_ele)
 
     ele_list_without_isotracer = set(ele_list) - set(isotracer_list)
-    print('ele_no_tracer', ele_list_without_isotracer)
 
     unlabeled_ele = {}
     
@@ -213,30 +205,21 @@ def get_element_correction_dict(formula, res_type, isotracer, res, res_mw, instr
     for isotope in isotracer:
         correction_limit_dict = {}
 
-        print('isotracer', isotracer)
-        print('isotope', isotope)
         #this isotope[0] needs to change, hard to read code
         #also errornous if isotracer element has two letter like Si
         if isotope[0] in ele_list:
             ##restricting correction elements to common isotopes CHNOPS, 
             ##should be given as a warning somewhere or specified in documentation
             indis_ele_list = list(ele_list_without_isotracer.intersection(set(isotope_ele)))
-            print(indis_ele_list)
             indis_ele_list = add_isotopes_list(indis_ele_list)
-            print(indis_ele_list)
             get_ele = lambda iso: get_indistinguishable_ele(isotope, res_type, formula_dict, iso, res, res_mw, instrument)
             indis_element = map(get_ele, indis_ele_list)
-            print('after map', indis_element)
             indis_element = filter(None, indis_element)
             indis_element_list = []
-            print('indis_element', indis_element)
             for ele, num in indis_element:
                 if res_type == 'autodetect':
                     try:
-                        print('try', ele)
-                        print(unlabeled_ele[ele][1])
                         if (unlabeled_ele[ele][1] == 0 and num == 0):
-                            print('in 0 if')
                             pass
                         elif (unlabeled_ele[ele][1] == 0 and num != 0):
                             old_iso = unlabeled_ele[ele][0]
@@ -255,13 +238,8 @@ def get_element_correction_dict(formula, res_type, isotracer, res, res_mw, instr
                     except:
                         unlabeled_ele[ele] = [isotope[0], num]
                         correction_limit_dict[ele] = num
-                        print(unlabeled_ele, 'unlabeled_ele')
                 else:
                     correction_limit_dict[ele] = num
-                    print('ele', num)
-                #indis_element_list.append(ele)
-            print('corr_limit_dict', correction_limit_dict)
             element_correction_dict[isotope[0]] = correction_limit_dict
-    print('ele_corr_dict', element_correction_dict)
     return element_correction_dict
 
