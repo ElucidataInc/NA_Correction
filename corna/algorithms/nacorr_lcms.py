@@ -72,10 +72,8 @@ def multiplying_df_with_matrix(isotracer, corr_mat_for_isotracer, curr_df):
          0  0.2079  0.9702
 	     1  0.3421  0.1198
     """
-    print(corr_mat_for_isotracer)
     num_rows, num_cols = corr_mat_for_isotracer.shape
 
-    print(curr_df)
     curr_df = curr_df.reindex(np.arange(num_cols)).fillna(0)
 
     corr_data = np.matmul(corr_mat_for_isotracer, curr_df.values)
