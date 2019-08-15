@@ -99,7 +99,7 @@ def add_indistinguishable_element_for_autodetect_3(M, n, pvec, corr_limit_1, cor
     return M_new
 
 
-def make_correction_matrix(trac_atom, formuladict, na_dict, indist_elems, autodetect, corr_limit):
+def make_correction_matrix(isotracer, formuladict, na_dict, indist_elems, autodetect, corr_limit):
     """create matrix M such that Mx=y where y is the observed isotopic distribution
     and x is the expected distribution of input labels
 
@@ -111,7 +111,8 @@ def make_correction_matrix(trac_atom, formuladict, na_dict, indist_elems, autode
     in more appropriate way.
     """
     lookup_dict = {'O':['O16','O17','O18'], 'S':['S32','S33','S34'], 'Si':['Si28','Si29','Si30']}
-    if (trac_atom == 'O18' or trac_atom == 'S34' or trac_atom == 'Si30'):
+    trac_atom = get_isotope_element(isotracer)
+    if (isotracer == 'O18' or isotracer == 'S34' or isotracer == 'Si30'):
     	M = make_expected_na_matrix_3(formuladict.get(trac_atom, 0), na_dict[trac_atom])
     else:
     	M = make_expected_na_matrix(formuladict.get(trac_atom, 0), na_dict[trac_atom])
@@ -180,6 +181,6 @@ def make_all_corr_matrices(isotracers, formula_dict, na_dict, autodetect, corr_l
             indist_list = corr_limit[str(trac_atom)].keys()
         except KeyError:
             indist_list = []
-        corr_mats[isotracer] = make_correction_matrix(trac_atom, formula_dict, na_dict, indist_list, autodetect, corr_limit[trac_atom])
+        corr_mats[isotracer] = make_correction_matrix(isotracer, formula_dict, na_dict, indist_list, autodetect, corr_limit[trac_atom])
     return corr_mats
 
