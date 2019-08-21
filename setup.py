@@ -9,7 +9,7 @@ def readme():
 
 setup(
 	name='corna',
-    version='0.0.327',
+    version='1.0.114',
     description='Natural Abundance Correction Toolbox',
     long_description=readme(),
     packages = find_packages(),
