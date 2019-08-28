@@ -36,11 +36,6 @@ def test_make_expected_na_matrix():
     assert algo.make_expected_na_matrix(0, [0, 1]) == np.array([1.])
 
 
-def test_add_indistinguishable_element():
-    with pytest.raises(IndexError):
-        algo.add_indistinguishable_element(np.array([1.]), 1, [0, 1])
-
-
 def test_corr_matrix():
     iso_tracer = 'C'
     with pytest.raises(KeyError):

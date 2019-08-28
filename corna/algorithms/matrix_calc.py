@@ -60,22 +60,6 @@ def na_term(pvec,n,i,j=0):
     return coeff
 
 
-def add_indistinguishable_element(M,n,pvec):
-    """to a matrix M formed by make_expected_na_matrix, add additional expected
-    intensity corresponding to natural abundance from elements with same isotopic mass shift
-
-    M: previous matrix formed by make_expected_na_matrix
-    n: number of atoms of new element
-    pvec: expected isotopic distribution of new element (e.g. [0.99,0.01])"""
-    #max_label=(n*(len(pvec)-1))
-    #M_new=np.zeros((M.shape[0]+max_label,M.shape[1]))
-    M_new = np.zeros((M.shape[0], M.shape[1]))
-    M_new[:M.shape[0],:]=M    
-    for i in range(M.shape[1]):
-        for j in range(n):
-            M_new[:, i] = np.convolve(M_new[:, i], pvec)[:M_new.shape[0]]
-    return M_new
-
 def add_indistinguishable_element_for_autodetect_2(M, n, pvec, corr_limit):
     M_new = np.zeros((M.shape[0], M.shape[1]))
     M_new[:M.shape[0], :] = np.eye(M.shape[1])
