@@ -60,7 +60,7 @@ def na_term(pvec,n,i,j=0):
     return coeff
 
 
-def add_indistinguishable_element_for_autodetect_2(M, n, pvec, corr_limit):
+def add_indistinguishable_element_for_autodetect(M, n, pvec, corr_limit):
     M_new = np.zeros((M.shape[0], M.shape[1]))
     M_new[:M.shape[0], :] = np.eye(M.shape[1])
     for i in range(M.shape[1]):
@@ -70,7 +70,7 @@ def add_indistinguishable_element_for_autodetect_2(M, n, pvec, corr_limit):
             M_new[k, i] = 0
     return M_new
 
-def add_indistinguishable_element_for_autodetect_3(M, n, pvec, corr_limit_1, corr_limit_2):
+def add_indistinguishable_element_for_autodetect(M, n, pvec, corr_limit_1, corr_limit_2):
     M_new = np.zeros((M.shape[0], M.shape[1]))
     for i in range(min(n, corr_limit_1)+1):
         for j in range(min(n, corr_limit_2)+1):
@@ -112,7 +112,7 @@ def make_correction_matrix(isotracer, formuladict, na_dict, indist_elems, autode
                     if(lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy):
                         corr_limit_1 = int(corr_limit[lookup_dict[e2][1]])
                         corr_limit_2 = int(corr_limit[lookup_dict[e2][2]])
-                        M_indist.append(add_indistinguishable_element_for_autodetect_3(M, formuladict[e2], na_dict_copy[e2], corr_limit_1, corr_limit_2))
+                        M_indist.append(add_indistinguishable_element_for_autodetect(M, formuladict[e2], na_dict_copy[e2], corr_limit_1, corr_limit_2))
                         indist_elems_copy.remove(lookup_dict[e2][1])
                         indist_elems_copy.remove(lookup_dict[e2][2])
 
@@ -124,15 +124,15 @@ def make_correction_matrix(isotracer, formuladict, na_dict, indist_elems, autode
                         list_values[pos]= na_dict_copy[e2][pos]
                         na_dict_copy[str(e)]=list_values  
                         corr_limit_1 = int(corr_limit[e])
-                        M_indist.append(add_indistinguishable_element_for_autodetect_2(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
+                        M_indist.append(add_indistinguishable_element_for_autodetect(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
 
                     else:
                         corr_limit_1 = int(corr_limit[e])
-                        M_indist.append(add_indistinguishable_element_for_autodetect_2(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
+                        M_indist.append(add_indistinguishable_element_for_autodetect(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
 
                 except Exception, exception_str:
                     corr_limit_1 = int(corr_limit[e])
-                    M_indist.append(add_indistinguishable_element_for_autodetect_2(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
+                    M_indist.append(add_indistinguishable_element_for_autodetect(M, formuladict[e2], na_dict_copy[e], corr_limit_1))
 
     if M_indist:
         i = np.eye(M.shape[1])
