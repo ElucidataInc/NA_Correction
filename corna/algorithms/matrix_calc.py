@@ -29,7 +29,7 @@ def make_expected_na_matrix(N, pvec):
         correction_matrix[:, i] = column
     return correction_matrix[:N+1]
     
-def make_expected_na_matrix_3(N, pvec):
+def make_expected_na_matrix_heavy(N, pvec):
     """for a single labeled element, create the matrix M
     such that Mx=y where x is the actual distribution of input labels
     and y is the expected distribution of intensities with natural abundance
@@ -97,7 +97,7 @@ def make_correction_matrix(isotracer, formuladict, na_dict, indist_elems, autode
     lookup_dict = {'O':['O16','O17','O18'], 'S':['S32','S33','S34'], 'Si':['Si28','Si29','Si30']}
     trac_atom = get_isotope_element(isotracer)
     if (isotracer == 'O18' or isotracer == 'S34' or isotracer == 'Si30'):
-    	M = make_expected_na_matrix_3(formuladict.get(trac_atom, 0), na_dict[trac_atom])
+    	M = make_expected_na_matrix_heavy(formuladict.get(trac_atom, 0), na_dict[trac_atom])
     else:
     	M = make_expected_na_matrix(formuladict.get(trac_atom, 0), na_dict[trac_atom])
     M_indist = []
