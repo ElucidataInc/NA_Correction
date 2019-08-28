@@ -2,6 +2,7 @@ import numpy
 import pandas as pd
 
 import corna.algorithms.background_correction as preproc
+from corna.inputs.multiquant_parser import mq_df_to_fragmentdict
 from corna.constants import ISOTOPE_NA_MASS
 
 df=pd.DataFrame({'Sample':{0:'TA_SCS-ATP BCH_19May16_1June16.wiff (sample 1)',
@@ -77,8 +78,9 @@ def test_background_subtraction_negative():
      assert preproc.background_subtraction(278, 280) == 0
 
 def test_background_correction():
-    result = preproc.background_correction(df, list_of_replicates)
-    output_list =[51666.0,52361.856 ,52538.436,
+     mq_fragdict = mq_df_to_fragmentdict(df)
+     result = preproc.background_correction(mq_fragdict, list_of_replicates)
+     output_list =[51666.0,52361.856 ,52538.436,
                            1720.4778000000001, 1329.3858, 1720.4778000000001,
                            59689.272, 59950.872,  57204.072,
                            1987.6527575999999, 765.9807575999996, 679.6527575999996
