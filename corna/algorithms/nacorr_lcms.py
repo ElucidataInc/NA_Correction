@@ -12,7 +12,7 @@ import scipy.optimize
 
 import matrix_calc as algo
 import corna.inputs.maven_parser as parser
-from corna.autodetect_isotopes import get_element_correction_dict
+from autodetect_isotopes import get_element_correction_dict
 from corna import constants as cons
 from corna.helpers import get_isotope_element, first_sub_second, parse_formula, chemformula_schema, get_na_value_dict
 

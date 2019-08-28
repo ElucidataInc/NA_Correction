@@ -1,6 +1,6 @@
 import pytest
 
-from corna import autodetect_isotopes as auto
+from corna.algorithms import autodetect_isotopes as auto
 
 
 def test_get_ppm_required():
