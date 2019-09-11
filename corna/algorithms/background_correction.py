@@ -94,8 +94,11 @@ def background_correction(msms_df, list_of_replicates, isotope_dict=const.ISOTOP
             for replicate_group in list_of_replicates:
                 background_list = []
                 for each_replicate in replicate_group:
-                    unlabel_intensity = unlabel_isotope_df.loc[unlabel_isotope_df[const.SAMPLE_COL] == each_replicate,
+                    try:
+                        unlabel_intensity = unlabel_isotope_df.loc[unlabel_isotope_df[const.SAMPLE_COL] == each_replicate,
                                                                          const.INTENSITY_COL].iloc[0]
+                    except:
+                        unlabel_intensity = 0
                     noise = background_noise(unlabel_intensity, na, frag_df[const.PARENT_NUM_ATOMS].unique()[0],
                                                     frag_df[const.PARENT_NUM_LABELED_ATOMS].unique()[0],
                                                     frag_df[const.DAUGHTER_NUM_ATOMS].unique()[0],

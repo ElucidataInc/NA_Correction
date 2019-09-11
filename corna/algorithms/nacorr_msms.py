@@ -9,8 +9,8 @@ from corna.inputs import multiquant_parser
 def na_correction_mimosa(msms_df, isBackground,
                          isotope_dict=const.ISOTOPE_NA_MASS):
     """
-    This function performs na correction on the input data frame for
-    LCMS/MS file. For performing na correction, it first calculates
+    This function performs NA correction on the input data frame for
+    LCMS/MS file. For performing NA correction, it first calculates
     total number of atoms and number of labeled atoms present in both
     parent formula and daughter formula of each compound. Then for
     each sample it corrects the intensity values of each compound one
@@ -30,7 +30,6 @@ def na_correction_mimosa(msms_df, isBackground,
 
     Returns:
         output_df: na corrected dataframe
-
     """
     if isBackground:
         final_df = msms_df

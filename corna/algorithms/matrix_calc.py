@@ -57,17 +57,20 @@ def make_correction_matrix(trac_atom, formuladict, na_dict, indist_elems):
     indist_elems_copy = indist_elems
     for e in indist_elems:
         e2 = get_isotope_element(e)
-        if(lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy):
-            indist_elems_copy.remove(str(lookup_dict[e2][1]))
-            indist_elems_copy.remove(str(lookup_dict[e2][2]))
-            indist_elems.append(e2)
-        elif ((lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] not in indist_elems_copy)) or \
-                        ((lookup_dict[e2][1] not in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy)):
-            pos = lookup_dict[e2].index(str(e))
-            list_values = [0]*3
-            list_values[0]= na_dict[e2][0]
-            list_values[pos]= na_dict[e2][pos]
-            na_dict[str(e)]=list_values        
+        try:
+            if(lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy):
+                indist_elems_copy.remove(str(lookup_dict[e2][1]))
+                indist_elems_copy.remove(str(lookup_dict[e2][2]))
+                indist_elems.append(e2)
+            elif ((lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] not in indist_elems_copy)) or \
+                            ((lookup_dict[e2][1] not in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy)):
+                pos = lookup_dict[e2].index(str(e))
+                list_values = [0]*3
+                list_values[0]= na_dict[e2][0]
+                list_values[pos]= na_dict[e2][pos]
+                na_dict[str(e)]=list_values  
+        except KeyError :
+            continue      
         if e2 in formuladict:
             e1 = ISOTOPE_NA_MASS[KEY_ELE][e]
             try:
