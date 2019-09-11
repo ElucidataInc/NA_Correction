@@ -118,5 +118,3 @@ def background_correction(msms_df, list_of_replicates, isotope_dict=const.ISOTOP
     output_df[const.BACKGROUND_CORRECTED] = output_df[const.INTENSITY_COL] - output_df['replicate_value']
     output_df.drop('replicate_value', axis=1, inplace=True)
     return output_df
-
-
