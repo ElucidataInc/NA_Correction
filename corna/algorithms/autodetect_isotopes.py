@@ -1,8 +1,8 @@
 import numpy as np
 from copy import copy
 
-import constants as cs
-import helpers as hl
+from corna import constants as cs
+from corna import helpers as hl
 
 
 
