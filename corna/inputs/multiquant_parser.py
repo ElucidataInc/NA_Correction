@@ -267,18 +267,26 @@ def merge_samples(merged_df, sample_metadata):
             check_column_headers(col_headers_merged, bg_corr_col_names_merged)
             assert set(sample_metadata[multiquant.BACKGROUND]).issubset(set(sample_metadata[multiquant.MQ_SAMPLE_NAME]))
             merged_df = merged_df.merge(sample_metadata, how='inner',
-                                        on=[multiquant.MQ_SAMPLE_NAME, multiquant.MQ_COHORT_NAME])
+                                        on=[multiquant.MQ_SAMPLE_NAME,
+                                            multiquant.MQ_COHORT_NAME])
             if merged_df.empty:
                 raise Exception('Empty Merge, no common entries to process, please check input files')
         except AssertionError:
             warnings.warn("Background Correction can't be performed")
             merged_df = merged_df.merge(sample_metadata, how='inner',
-                                        on=[multiquant.MQ_SAMPLE_NAME])
+                                        on=[multiquant.MQ_SAMPLE_NAME,
+                                            multiquant.MQ_COHORT_NAME])
 
-    # first change Sample Name to Cohort Name, then Original Filename to Sample
+    # if Cohort Name is not provided, change Sample Name to Cohort Name
+    # then Original Filename to Sample
     # refer to multiquant raw output
-    merged_df.rename(
-        columns={multiquant.MQ_COHORT_NAME: multiquant.COHORT}, inplace=True)
+    if multiquant.COHORT in merged_df.columns.values:
+        merged_df.drop(multiquant.MQ_COHORT_NAME, inplace=True, axis=1)
+    else:
+        merged_df.rename(
+            columns={multiquant.MQ_COHORT_NAME: multiquant.COHORT},
+            inplace=True)
+
     merged_df.rename(
         columns={multiquant.MQ_SAMPLE_NAME: multiquant.SAMPLE}, inplace=True)
 
