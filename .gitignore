@@ -9,7 +9,6 @@
 *.pyc
 *.py~
 *.swp
-*.ipynb
 
 # Virtual Environment #
 #######################
@@ -66,10 +65,7 @@ Thumbs.db
 #############
 *.cdat
 *.xml
-*.ipynb
-*.csv
 *.xls
-*.xlsx
 
 .cache/**
 dist/**

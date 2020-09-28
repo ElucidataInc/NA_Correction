@@ -1,6 +1,5 @@
 import constants as cs
 import helpers as hl
-from model import Ion
 
 
 def get_ppm_required(formula, delta_m):
@@ -16,8 +15,8 @@ def get_ppm_required(formula, delta_m):
         required_ppm: ppm required to distinguish two elements.
     """
 
-    Ion_object = Ion('', formula)
-    metabolite_mass = Ion.get_mol_weight(Ion_object)
+    
+    metabolite_mass = hl.get_mol_weight(formula)
     required_ppm = 1000000 * (delta_m / metabolite_mass)
     return required_ppm
 
@@ -78,9 +77,9 @@ def ppm_validation(ppm_user_input, required_ppm, formula, ele):
 
     if (borderline_ppm_warning(ppm_user_input, required_ppm, formula, ele)) \
        or (ppm_user_input > required_ppm):
-        return True
+       return True
 
-
+       
 def get_indistinguishable_ele(isotracer, formula, ppm_user_input,element):
     """This function returns element which is indistinguishable for
     a particular isotracer
@@ -158,8 +157,7 @@ def get_element_correction_dict(ppm_user_input, formula, isotracer):
     """
 
     element_correction_dict = {}
-    ion_object = Ion('', formula)
-    ele_list = (ion_object.get_formula()).keys()
+    ele_list = (hl.parse_formula(formula)).keys()
     isotracer_list = get_isotope_element_list(isotracer)
     isotope_ele = get_isotope_element_list(cs.MASS_DIFF_DICT.keys())
     ele_list_without_isotracer = set(ele_list) - set(isotracer_list)

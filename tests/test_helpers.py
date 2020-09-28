@@ -6,6 +6,15 @@ import pytest
 import corna.helpers as help
 
 
+
+def test_parse_formula():
+    assert help.parse_formula('C2H5O2') == {'C':2, 'H':5, 'O':2}
+
+
+def test_parse_formula_single_atom():
+    assert help.parse_formula('CH2O') == {'C':1, 'H':2, 'O':1}  
+
+
 def test_get_global_isotope_dict():
     assert help.get_global_isotope_dict()['amu']['C12'] == 12
 
@@ -49,6 +58,9 @@ def test_get_isotope_mass_keyerror():
     with pytest.raises(KeyError):
         help.get_isotope_mass('C23')
 
+def test_mol_weight():
+    assert help.get_mol_weight('C2H5') == 29.0611
+
 
 def test_get_isotope_natural():
     assert help.get_isotope_natural('C13') == 'C12'
@@ -57,14 +69,6 @@ def test_get_isotope_natural():
 def test_get_isotope_natural_keyerror():
     with pytest.raises(KeyError):
         help.get_isotope_natural('PP')
-
-
-def test_get_isotope_keyerror():
-    assert not help.check_if_isotope_in_dict('Ind5')
-
-
-def test_label_dict_to_key():
-    assert help.label_dict_to_key({'C13':2, 'N14':4}) == 'C13_2_N14_4'
 
 
 def test_read_file():
@@ -94,46 +98,6 @@ def test_filter_df_error():
     filter_dict = {'col_1': [1]}
     with pytest.raises(KeyError):
         filter_df = help.filter_df(df, filter_dict)
-
-
-def test_create_dict_from_isotope_label_list():
-    assert help.create_dict_from_isotope_label_list(['C13',2,'N15',5]) == {'C13': 2, 'N15': 5}
-
-
-def test_create_dict_from_isotope_label_list_missing_number():
-    with pytest.raises(ValueError) as err:
-        help.create_dict_from_isotope_label_list(['C13','N15',5])
-    assert err.value.message == 'The number of labels should be integer'
-
-
-def test_create_dict_from_isotope_label_list_no_isotope():
-    with pytest.raises(KeyError) as err:
-        help.create_dict_from_isotope_label_list([6, 'C13','N15',5])
-    assert err.value.message == 'The key must be an isotope'
-
-
-def test_get_key_from_single_value_dict():
-    assert help.get_key_from_single_value_dict({'C13':1}) == 'C13'
-
-
-def test_get_value_from_single_value_dict():
-    assert help.get_value_from_single_value_dict({'C13':1}) == 1
-
-
-def test_get_value_from_single_value_dict_error():
-    with pytest.raises(OverflowError) as err:
-        help.get_value_from_single_value_dict({'C13':1, 'C12':1})
-        assert err.value.message == 'Dictionary not single key, value pair'
-
-
-
-def test_get_key_from_single_value_dict_len_error():
-    with pytest.raises(OverflowError):
-        help.get_key_from_single_value_dict({'C13':1, 'C14':2})
-
-
-def test_get_formula():
-    assert help.get_formula('C6H12O6') == {'C':6, 'H':12, 'O':6}
 
 
 def test_get_na_value_dict_O():
@@ -177,3 +141,8 @@ def test_get_metabolite_fragment():
 
 def test_first_sub_second():
     assert help.first_sub_second([1, 2], [3, 4]) == [1, 2]
+
+
+def test_get_isotope_keyerror():
+    assert not help.check_if_isotope_in_dict('Ind5')
+    

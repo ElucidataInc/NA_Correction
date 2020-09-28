@@ -4,12 +4,12 @@ with open('requirements.txt') as fin:
   requirements = fin.read()
 
 def readme():
-    with open('README.rst') as f:
+    with open('README.md') as f:
         return f.read()
 
 setup(
 	name='corna',
-    version='0.1.67',
+    version='1.0.114',
     description='Natural Abundance Correction Toolbox',
     long_description=readme(),
     packages = find_packages(),

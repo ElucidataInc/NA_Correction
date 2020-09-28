@@ -4,10 +4,7 @@ from numpy.linalg import pinv
 import pandas as pd
 
 from corna.constants import ISOTOPE_NA_MASS, KEY_ELE
-from corna.inputs.maven_parser import frag_key
 from corna.helpers import get_isotope_element
-from corna.data_model import standard_model
-from corna.isotopomer import bulk_insert_data_to_fragment, Infopacket
 
 def make_expected_na_matrix(N, pvec):
     """for a single labeled element, create the matrix M
@@ -48,22 +45,56 @@ def make_correction_matrix(trac_atom, formuladict, na_dict, indist_elems):
     """create matrix M such that Mx=y where y is the observed isotopic distribution
     and x is the expected distribution of input labels
 
-    atom_bag: dict of element:number of atoms in molecule (e.g. {'C':2,'O':1,'H':6})
-    label_elem: element with input labeling
+    formuladict: dict of element:number of atoms in molecule (e.g. {'C':2,'O':1,'H':6})
+    trac_atom: element with input labeling
     indist_elems: elements with identical mass shift
-    na_dict: dict of element:expected isotopic distribution
+    na_dict: dict of - element:expected isotopic distribution
     :TODO This function relates to issue NCT-247. Need to change the function
     in more appropriate way.
     """
+    lookup_dict = {'O':['O16','O17','O18'], 'S':['S32','S33','S34'], 'Si':['Si28','Si29','Si30']}
     M = make_expected_na_matrix(formuladict.get(trac_atom, 0), na_dict[trac_atom])
+    indist_elems_copy = indist_elems
     for e in indist_elems:
-        if e in formuladict:
+        e2 = get_isotope_element(e)
+        try:
+            if(lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy):
+                indist_elems_copy.remove(str(lookup_dict[e2][1]))
+                indist_elems_copy.remove(str(lookup_dict[e2][2]))
+                indist_elems.append(e2)
+            elif ((lookup_dict[e2][1] in indist_elems_copy) and (lookup_dict[e2][2] not in indist_elems_copy)) or \
+                            ((lookup_dict[e2][1] not in indist_elems_copy) and (lookup_dict[e2][2] in indist_elems_copy)):
+                pos = lookup_dict[e2].index(str(e))
+                list_values = [0]*3
+                list_values[0]= na_dict[e2][0]
+                list_values[pos]= na_dict[e2][pos]
+                na_dict[str(e)]=list_values  
+        except KeyError :
+            continue      
+        if e2 in formuladict:
             e1 = ISOTOPE_NA_MASS[KEY_ELE][e]
-            M = add_indistinguishable_element(M, formuladict[e1], na_dict[e])
+            try:
+                M = add_indistinguishable_element(M, formuladict[e1], na_dict[e])
+            except:
+                M = add_indistinguishable_element(M, formuladict[e1], na_dict[e2])
     return pinv(M)
 
 
 def make_all_corr_matrices(isotracers, formula_dict, na_dict, eleme_corr):
+    """
+    This function forms correction matrix M, such that Mx=y where y is the 
+    observed isotopic distribution and x is the expected distribution of input
+    labels, for each indistinguishable element for a particular isotracer one by one. 
+    Args:
+    isotracers - list of isotracers presnt in the formula.
+    formula_dict - dict of form- element:number of atoms in molecule (e.g. {'C':2,'O':1,'H':6})
+    na_dict - dict of form- element:expected isotopic distribution
+    eleme_corr - dict of form- isotracer_element:indistinguishable elements list(elements with identical mass shift)
+                 Eg- { 'C13': ['H', 'O17'], 'N15': ['H']}
+
+    Returns:
+    corr_mats - dict of form- isotracer_element: correction matrix
+    """
     corr_mats = {}
     for isotracer in isotracers:
         trac_atom = get_isotope_element(isotracer)
@@ -74,133 +105,3 @@ def make_all_corr_matrices(isotracers, formula_dict, na_dict, eleme_corr):
         corr_mats[isotracer] = make_correction_matrix(trac_atom, formula_dict, na_dict, indist_list)
     return corr_mats
 
-def fragmentsdict_model(merged_df, intensity_col):
-    """
-    This function converts the dataframe into fragment dictionary model
-    Args:
-        merged_df : dataframe with input + metadata file
-    Returns:
-        fragments_dict : Dictionary of the form, example : {'Aceticacid_C13_1':
-        [Fragment object, {'sample_1': array([ 0.0164])}, False, 'Aceticacid']
-    """
-    fragments_dict = {}
-    frag_merge_df = frag_key(merged_df)
-    std_model_mvn = standard_model(frag_merge_df, intensity_col)
-    for metabolite_name, label_dict in std_model_mvn.iteritems():
-        fragments_dict[metabolite_name] = {}
-        for label, data in label_dict.iteritems():
-            fragments_dict[metabolite_name].update(
-                bulk_insert_data_to_fragment(metabolite_name, {label: data}, number=True))
-    return fragments_dict
-
-
-def unique_samples_for_dict(fragments_dict):
-    """
-    This function returns the list of samples from fragment dictionary model
-
-    Args:
-        fragments_dict : Dictionary of the form, {'Metabname_label':
-        [Fragment object, {'sample_name': intensity}, label/unlabe bool, metabname]
-
-    Returns:
-        sample_list : returns list of samples from the dictionary
-                      of the form ['sample_1']
-    """
-
-    sample_list = list(set(sample for info in fragments_dict.values()
-                           for sample in info.data.keys()))
-
-    return sample_list
-
-
-def label_sample_df(iso_tracers, fragments_dict):
-    """
-    This function returns dataframe with isotracers as indices and samples
-    as columns like:
-    N15 C13 Sample1 Sample2
-    0   0   0.21    0.98
-    0   1   0.34    0.11
-    1   0   0.87    0.34
-    1   1   0.23    0.76
-
-    Args:
-        iso_tracers : list of isotopic tracers
-        fragments_dict : Dictionary of the form, {'Metabname_label':
-        [Fragment object, {'sample_name': intensity}, label/unlabe bool, metabname]
-
-    Returns:
-        samp_lab_df :
-    """
-    sample_list = unique_samples_for_dict(fragments_dict)
-    frag_info = fragments_dict.values()
-    sam_lab_df = pd.DataFrame(columns=iso_tracers + sample_list)
-
-    i=0
-    for info in frag_info:
-        dict_s = {}
-        for isotopes in iso_tracers:
-            try:
-                dict_s.update({isotopes: info.frag.get_num_labeled_atoms_isotope(str(isotopes))})
-            except KeyError:
-                raise KeyError(
-                        'Isotope not present in chemical formula', info.frag)
-        dict_s.update(info.data)
-        sam_lab_df.loc[i] = pd.Series(dict_s)
-        i=i+1
-
-    sam_lab_df = sam_lab_df.set_index(iso_tracers)
-    sam_lab_df.columns.name = 'Sample'
-    return sam_lab_df
-
-def formuladict(fragments_dict):
-    """
-    This function creates a formula dictionary from the chemical
-    formula defined in the input data file
-    Args:
-        fragments_dict : Dictionary of the form, {'Metabname_label':
-        [Fragment object, {'sample_name': intensity}, label/unlabe bool, metabname]
-    Returns:
-        formula_dict : dictionary of the form {C:2, H:4, O:2}
-    """
-    # all elements of fragments dictionary belong to same metabolite, so same
-    # formula
-    fragment_info = fragments_dict.values()[0]
-    formula_dict = fragment_info.frag.get_formula()
-
-    return formula_dict
-
-
-def fragmentdict_model(iso_tracers, fragments_dict, lab_samp_dict):
-    """
-    This function creates a model of fragments dictionary on which model functions can
-    applied
-
-    Args:
-        iso_tracers : list of isotopic tracers
-        fragments_dict : dictionary of the form, example : {'Aceticacid_C13_1': [C2H4O2,
-                         {'sample_1': array([ 0.0164])}, False, 'Aceticacid']
-        lab_samp_dict : dictionary of the form {(0, 1): {'sample_1': 0.0619}....}
-    Returns:
-        nacorr_fragment_dict : fragment dictionary model
-
-    """
-    nacorr_fragment_dict = {}
-    for frag_name, frag_info in fragments_dict.iteritems():
-
-        if len(iso_tracers) == 1:
-            lab_tup_key = frag_info.frag.get_num_labeled_atoms_isotope(iso_tracers[0])
-
-        elif len(iso_tracers) > 1:
-            try:
-                lab_tup_key = []
-                for isotope in iso_tracers:
-                    lab_tup_key.append(
-                        frag_info.frag.get_num_labeled_atoms_isotope(isotope))
-                lab_tup_key = tuple(lab_tup_key)
-            except KeyError:
-                raise KeyError(
-                    'Name, Formula or Sample not found in input data file')
-
-        nacorr_fragment_dict[frag_name] = Infopacket(frag_info.frag, lab_samp_dict[lab_tup_key],
-                                                     frag_info.unlabeled, frag_info.name)
-    return nacorr_fragment_dict
