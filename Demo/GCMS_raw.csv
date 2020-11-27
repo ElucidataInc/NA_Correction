@@ -1,0 +1,15 @@
+Name,Formula,Label,sample1
+Glucosepentaacetate,C16H22O11,C12 PARENT,0.57137616
+Glucosepentaacetate,C16H22O11,C13-label-1,0.103651686
+Glucosepentaacetate,C16H22O11,C13-label-2,0.272023831
+Glucosepentaacetate,C16H22O11,C13-label-3,0.04274463
+Glucosepentaacetate,C16H22O11,C13-label-4,0.008983722
+Glucosepentaacetate,C16H22O11,C13-label-5,0.001073253
+Glucosepentaacetate,C16H22O11,C13-label-6,0.000132758
+GlucoseTMS,C9O12H15Si,C12 PARENT,0.1627
+GlucoseTMS,C9O12H15Si,C13-label-1,0.0242
+GlucoseTMS,C9O12H15Si,C13-label-2,0.0104
+GlucoseTMS,C9O12H15Si,C13-label-3,0.2507
+GlucoseTMS,C9O12H15Si,C13-label-4,0.0317
+GlucoseTMS,C9O12H15Si,C13-label-5,0.0181
+GlucoseTMS,C9O12H15Si,C13-label-6,0.4347

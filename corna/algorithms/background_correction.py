@@ -10,7 +10,6 @@ from corna.helpers import get_isotope_na
 from corna import constants
 from corna.isotopomer import bulk_insert_data_to_fragment, Infopacket
 from corna.inputs.column_conventions import multiquant
-from corna.inputs import multiquant_parser
 
 def background_noise(unlabel_intensity, na, parent_atoms, parent_label,
                                              daughter_atoms, daughter_label):
@@ -138,8 +137,7 @@ def bulk_background_correction(fragment_dict, list_of_replicates, sample_backgro
 
 #     return preprocessed_output_dict
 
-def background_correction(msms_df, list_of_replicates, sample_background, isotope_dict=constants.ISOTOPE_NA_MASS, decimals=0):
-    metabolite_frag_dict = multiquant_parser.mq_df_to_fragmentdict(msms_df)
+def background_correction(metabolite_frag_dict, list_of_replicates, sample_background, isotope_dict=constants.ISOTOPE_NA_MASS, decimals=0):
     preprocessed_output_dict = {}
     for metabolite, fragments_dict in metabolite_frag_dict.iteritems():
         preprocessed_output_dict[metabolite] = bulk_background_correction(fragments_dict,

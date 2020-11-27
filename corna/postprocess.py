@@ -51,12 +51,10 @@ def pool_total_MSMS(na_corr_df, colname):
     pool_total_df = pool_total_df.apply(lambda x: x[x[colname] >= 0][colname].sum())
     return pool_total_df
 
-
 def fractional_enrichment(df):
     """
     This function calculates fractional enrichment
     for all the metabolites in the input data file
-
     Args:
         df: dataframe for which fractional enrichment has to be calculated.
     Returns:
@@ -144,28 +142,6 @@ def enrichment(fragments_dict, decimals):
             value.frag, fractional_data, value.unlabeled, value.name)
  
     return fragments_fractional
-
-# def fractional_enrichment(post_processed_out, decimals=4):
-#     """ 
-#     This function is a wrapper over enrichment function which calculates fractional enrichment
-#     for all the metabolites in the input data file
-# 
-#     Args:
-#         post_processed_out : Dictionary of the form, {'Metabname_label':
-#         [Fragment object, {'sample_name': corrected_intensity}, label/unlabe bool, metabname]
-#         decimals : number of decimals to keep
-# 
-#     Returns:
-#         frac_enrichment_dict : fragment dictionary model of fractional enrichment values for all
-#                                metabolites
-#     """
-#     frac_enrichment_dict = {}
-# 
-#     for metabolite, fragment_dict in post_processed_out.iteritems():
-#         frac_enrichment_dict[metabolite] = enrichment(fragment_dict, decimals)
-# 
-#     return frac_enrichment_dict
-
 
 def replace_vals(sample_int_dict):
      """

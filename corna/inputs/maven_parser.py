@@ -114,7 +114,7 @@ def create_label_column_frm_isotope_columns(df, isotracers):
     return df
 
 
-def add_name_formula_label_col(info_df, metab, formula, iso_tracers, eleme_corr):
+def add_name_formula_label_col(info_df, metab, formula, iso_tracers):
     """
     Adds required columns back to the na corrected Dataframe 
     Required columns include : Label, Name, Formula, indistinguishable_isotope_dict
@@ -130,10 +130,12 @@ def add_name_formula_label_col(info_df, metab, formula, iso_tracers, eleme_corr)
     Returns:
         info_df: processed dataframe.
     """
+
+    ##redundant inputs?
+    ##metab and formula are not being used anywhere
     info_df=create_label_column_frm_isotope_columns(info_df, iso_tracers)
     info_df[cons.NAME_COL]= metab
     info_df[cons.FORMULA_COL] = formula
-    info_df[cons.INDIS_ISOTOPE_COL] = str(eleme_corr)
     return info_df
 
 
@@ -332,7 +334,7 @@ def get_merge_df(maven_df, metadata_df):
 
 
 
-def read_maven_file(maven_file_path, maven_df, metadata_df):
+def read_maven_file(maven_df, metadata_df):
     """
     This function reads maven and metadata df. If validation does not 
     raise any error it returns mergedf with logs and iso-tracer data.
